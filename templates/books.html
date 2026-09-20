@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Kirjat</title>
+</head>
+
+<body>
+
+  <h1>Kaikki kirjat</h1>
+
+  {% for book in books %}
+    <h2>{{ book.title }}</h2>
+    <p>Tekijä: {{ book.author }}</p>
+    <p>Vuosi: {{ book.year }}</p>
+    <p>{{ book.description }}</p>
+    {% if book.added_by == session.user_id %}
+      <a href="/edit_book/{{ book.id }}">Muokkaa</a>
+    {% endif %}
+    <hr>
+  {% endfor %}
+
+  <a href="/">Takaisin etusivulle</a>
+
+</body>
+
+</html>

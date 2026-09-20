@@ -2,14 +2,62 @@
 <html>
 
 <head>
-  <title>Etusivu</title>
+  <title>Kirjautuminen</title>
 </head>
 
 <body>
-  <h1>Etusivu</h1>
+  {% if session.username %}
   <p>
-    <b>Tervetuloa</b> <i>sovellukseen</i>!
+    Olet kirjautunut nimellä {{ session.username }}
   </p>
+  <p>
+    <a href="/books">Näytä kaikki kirjat</a>
+  </p>
+
+  <h2>Lisää kirja</h2>
+
+  <form action="/create_book" method="post">
+
+    <p>
+      Nimi:<br>
+      <input type="text" name="title">
+    </p>
+
+    <p>
+      Tekijä:<br>
+      <input type="text" name="author">
+    </p>
+
+    <p>
+      Vuosi:<br>
+      <input type="number" name="year">
+    </p>
+
+    <p>
+      Kuvaus:<br>
+      <textarea name="description"></textarea>
+    </p>
+
+    <input type="submit" value="Lisää kirja">
+
+  </form>
+  <p>
+    <a href="/logout">Kirjaudu ulos</a>
+  </p>
+
+  {% else %}
+  <form action="/login" method="post">
+    <p>
+      Tunnus: <br />
+      <input type="text" name="username" />
+    </p>
+    <p>
+      Salasana: <br />
+      <input type="password" name="password" />
+    </p>
+    <input type="submit" value="Kirjaudu" />
+  </form>
+  {% endif %}
 </body>
 
 </html>
