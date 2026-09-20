@@ -10,6 +10,8 @@ CREATE TABLE books (
     author TEXT,
     year INTEGER,
     description TEXT,
+    genre TEXT,
+    page_count INTEGER,
     added_by INTEGER,
     FOREIGN KEY (added_by) REFERENCES users(id)
 );

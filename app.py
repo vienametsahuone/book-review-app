@@ -67,6 +67,8 @@ def create_book():
     author = request.form["author"]
     year = request.form["year"]
     description = request.form["description"]
+    genre = request.form["genre"]
+    page_count = request.form["page_count"]
 
     user_id = db.query(
         "SELECT id FROM users WHERE username = ?",
@@ -74,20 +76,40 @@ def create_book():
     )[0][0]
 
     sql = """
-        INSERT INTO books (title, author, year, description, added_by)
-        VALUES (?, ?, ?, ?, ?)
-    """
+    INSERT INTO books
+    (title, author, year, description, genre, page_count, added_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+"""
 
-    db.execute(sql, [title, author, year, description, user_id])
+    db.execute(sql, [
+        title,
+        author,
+        year,
+        description,
+        genre,
+        page_count,
+        user_id
+                    ])
 
     return redirect("/")
 
 @app.route("/books")
 def books():
-    sql = "SELECT * FROM books"
-    books = db.query(sql)
+    search = request.args.get("search", "")
+
+    if search:
+        sql = """
+            SELECT * FROM books
+            WHERE title LIKE ? OR author LIKE ?
+        """
+        search = "%" + search + "%"
+        books = db.query(sql, [search, search])
+    else:
+        sql = "SELECT * FROM books"
+        books = db.query(sql)
 
     return render_template("books.html", books=books)
+
 
 @app.route("/edit_book/<int:id>")
 def edit_book(id):
@@ -110,14 +132,25 @@ def update_book(id):
     title = request.form["title"]
     author = request.form["author"]
     year = request.form["year"]
+    genre = request.form["genre"]
+    page_count = request.form["page_count"]
     description = request.form["description"]
 
     sql = """
-        UPDATE books
-        SET title = ?, author = ?, year = ?, description = ?
-        WHERE id = ?
+    UPDATE books
+    SET title = ?, author = ?, year = ?, description = ?,
+        genre = ?, page_count = ?
+    WHERE id = ?
     """
 
-    db.execute(sql, [title, author, year, description, id])
+    db.execute(sql, [
+        title,
+        author,
+        year,
+        description,
+        genre,
+        page_count,
+        id
+                    ])
 
     return redirect("/books")

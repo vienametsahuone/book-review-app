@@ -15,3 +15,15 @@
 * Users can choose classifications, such as genre. 
 
 * Users can add reviews for the books, with a comment and score. Books also show the comments and reviews from users. 
+
+# How to use
+
+* Clone the repo: git clone https://github.com/vienametsahuone/book-review-app
+
+* Install dependencies: pip install -r requirements.txt
+
+* To create the database, run: sqlite3 database.db < schema.sql 
+
+* First create an account from the front page. After creating the account, go back to the front page to add books.
+
+* Please note that there is no delete feature, as users cannot delete books they have added in order to prevent other users’ reviews from being deleted. 
