@@ -1,0 +1,43 @@
+body {
+  margin: auto;
+  max-width: 50em;
+  font-family: sans-serif;
+  background-color: lightblue;
+}
+
+.header {
+  background-color: white;
+  color: darkblue;
+  text-align: center;
+  padding: 1em;
+  margin: 0.5em 0;
+}
+
+.nav ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  gap: 3em;
+  margin: 0;
+  padding: 0;
+}
+
+.nav a {
+  color: white;
+}
+
+.nav {
+  background-color: darkslategray;
+  padding: 0.5em;
+  margin: 0.1em 0;
+}
+
+.content {
+  background-color: white;
+  padding: 1em;
+  margin: 0.5em 0;
+}
+
+h1, h2 {
+  margin: 0;
+}

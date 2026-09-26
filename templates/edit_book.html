@@ -1,52 +1,47 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <title>Muokkaa kirjaa</title>
-</head>
+{% block title %}Muokkaa kirjaa{% endblock %}
 
-<body>
+{% block content %}
 
-  <h1>Muokkaa kirjaa</h1>
+<h1>Muokkaa kirjaa</h1>
 
-  <form action="/edit_book/{{ book.id }}" method="post">
+<form action="/edit_book/{{ book.id }}" method="post">
 
-    <p>
-      Nimi:<br>
-      <input type="text" name="title" value="{{ book.title }}">
-    </p>
+  <p>
+    Nimi:<br>
+    <input type="text" name="title" value="{{ book.title }}">
+  </p>
 
-    <p>
-      Tekijä:<br>
-      <input type="text" name="author" value="{{ book.author }}">
-    </p>
+  <p>
+    Tekijä:<br>
+    <input type="text" name="author" value="{{ book.author }}">
+  </p>
 
-    <p>
-      Vuosi:<br>
-      <input type="number" name="year" value="{{ book.year }}">
-    </p>
+  <p>
+    Vuosi:<br>
+    <input type="number" name="year" value="{{ book.year }}">
+  </p>
 
-    <p>
-      Genre:<br>
-      <input type="text" name="genre" value="{{ book.genre }}">
-    </p>
+  <p>
+    Genre:<br>
+    <input type="text" name="genre" value="{{ book.genre }}">
+  </p>
 
-    <p>
-      Page count:<br>
-      <input type="number" name="page_count" value="{{ book.page_count }}">
-    </p>
+  <p>
+    Page count:<br>
+    <input type="number" name="page_count" value="{{ book.page_count }}">
+  </p>
 
-    <p>
-      Kuvaus:<br>
-      <textarea name="description">{{ book.description }}</textarea>
-    </p>
+  <p>
+    Kuvaus:<br>
+    <textarea name="description">{{ book.description }}</textarea>
+  </p>
 
-    <input type="submit" value="Tallenna">
+  <input type="submit" value="Tallenna">
 
-  </form>
+</form>
 
-  <a href="/books">Peruuta</a>
+<a href="/books">Peruuta</a>
 
-</body>
-
-</html>
+{% endblock %}

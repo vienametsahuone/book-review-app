@@ -1,73 +1,79 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <title>Kirjautuminen</title>
-</head>
+{% block title %}Kirjautuminen{% endblock %}
 
-<body>
-  {% if session.username %}
-  <p>
-    Olet kirjautunut nimellä {{ session.username }}
-  </p>
-  <p>
-    <a href="/books">Näytä kaikki kirjat</a>
-  </p>
+{% block content %}
 
-  <h2>Lisää kirja</h2>
-
-  <form action="/create_book" method="post">
-
-    <p>
-      Nimi:<br>
-      <input type="text" name="title">
-    </p>
-
-    <p>
-      Tekijä:<br>
-      <input type="text" name="author">
-    </p>
-
-    <p>
-      Vuosi:<br>
-      <input type="number" name="year">
-    </p>
-
-    <p>
-      Genre:<br>
-      <input type="text" name="genre">
-    </p> 
+{% if session.username %}
 
 <p>
-    Page count:<br>
-    <input type="number" name="page_count">
+  Olet kirjautunut nimellä {{ session.username }}
 </p>
 
-    <p>
-      Kuvaus:<br>
-      <textarea name="description"></textarea>
-    </p>
+<p>
+  <a href="/books">Näytä kaikki kirjat</a>
+</p>
 
-    <input type="submit" value="Lisää kirja">
+<h2>Lisää kirja</h2>
 
-  </form>
+<form action="/create_book" method="post">
+
   <p>
-    <a href="/logout">Kirjaudu ulos</a>
+    Nimi:<br>
+    <input type="text" name="title">
   </p>
 
-  {% else %}
-  <form action="/login" method="post">
-    <p>
-      Tunnus: <br />
-      <input type="text" name="username" />
-    </p>
-    <p>
-      Salasana: <br />
-      <input type="password" name="password" />
-    </p>
-    <input type="submit" value="Kirjaudu" />
-  </form>
-  {% endif %}
-</body>
+  <p>
+    Tekijä:<br>
+    <input type="text" name="author">
+  </p>
 
-</html>
+  <p>
+    Vuosi:<br>
+    <input type="number" name="year">
+  </p>
+
+  <p>
+    Genre:<br>
+    <input type="text" name="genre">
+  </p>
+
+  <p>
+    Page count:<br>
+    <input type="number" name="page_count">
+  </p>
+
+  <p>
+    Kuvaus:<br>
+    <textarea name="description"></textarea>
+  </p>
+
+  <input type="submit" value="Lisää kirja">
+
+</form>
+
+<p>
+  <a href="/logout">Kirjaudu ulos</a>
+</p>
+
+{% else %}
+
+<form action="/login" method="post">
+
+  <p>
+    Tunnus:<br>
+    <input type="text" name="username">
+  </p>
+
+  <p>
+    Salasana:<br>
+    <input type="password" name="password">
+  </p>
+
+  <input type="submit" value="Kirjaudu">
+
+</form>
+
+{% endif %}
+
+{% endblock %}
