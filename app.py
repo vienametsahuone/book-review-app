@@ -206,11 +206,150 @@ def book(id):
     result = db.query(sql, [id])
 
     if not result:
-        return render_template("book.html", book=None)
+        return render_template("book.html", book=None, reviews=[])
 
     book = result[0]
 
-    return render_template("book.html", book=book)
+    sql = """
+        SELECT reviews.*, users.username
+        FROM reviews
+        JOIN users ON reviews.user_id = users.id
+        WHERE reviews.book_id = ?
+        ORDER BY reviews.created_at DESC
+    """
+    reviews = db.query(sql, [id])
+
+    user_review = None
+
+    if "user_id" in session:
+        result = db.query(
+            """
+            SELECT *
+            FROM reviews
+            WHERE book_id = ? AND user_id = ?
+            """,
+            [id, session["user_id"]]
+        )
+
+        if result:
+            user_review = result[0]
+
+    return render_template(
+        "book.html",
+        book=book,
+        reviews=reviews,
+        user_review=user_review
+    )
+
+@app.route("/book/<int:id>/review", methods=["POST"])
+def create_review(id):
+    grade = request.form["grade"]
+    title = request.form["title"]
+    review_text = request.form["review_text"]
+    recommendation = request.form["recommendation"]
+
+    errors = []
+
+    if not grade:
+        errors.append("Arvosana on pakollinen")
+    elif not grade.isdigit():
+        errors.append("Arvosanan tulee olla numero")
+    else:
+        grade = int(grade)
+
+        if grade < 1 or grade > 5:
+            errors.append("Arvosanan tulee olla väliltä 1 ja 5")
+
+    if not title:
+        errors.append("Otsikko on pakollinen")
+
+    if len(title) > 150:
+        errors.append("Otsikko saa olla enintään 150 merkkiä")
+
+    if not review_text:
+        errors.append("Arvostelu on pakollinen")
+
+    if len(review_text) > 2000:
+        errors.append("Arvostelu saa olla enintään 2000 merkkiä")
+
+    if not recommendation:
+        errors.append("Suositus on pakollinen")
+    elif not recommendation.isdigit():
+        errors.append("Suosituksen tulee olla numero")
+    else:
+        recommendation = int(recommendation)
+
+        if recommendation < 1 or recommendation > 3:
+            errors.append("Suosituksen tulee olla väliltä 1 ja 3")
+
+    if errors:
+        return render_template(
+            "book.html",
+            book=db.query(
+                """
+                SELECT books.*, users.username
+                FROM books
+                JOIN users ON books.added_by = users.id
+                WHERE books.id = ?
+                """,
+                [id]
+            )[0],
+            reviews=db.query(
+                """
+                SELECT reviews.*, users.username
+                FROM reviews
+                JOIN users ON reviews.user_id = users.id
+                WHERE reviews.book_id = ?
+                ORDER BY reviews.created_at DESC
+                """,
+                [id]
+            ),
+            errors=errors
+        )
+
+    user_id = session["user_id"]
+
+    existing_review = db.query(
+    """
+    SELECT id
+    FROM reviews
+    WHERE book_id = ? AND user_id = ?
+    """,
+    [id, user_id]
+    )
+
+    if existing_review:
+        sql = """
+        UPDATE reviews
+        SET grade = ?, title = ?, review_text = ?, recommendation = ?
+        WHERE id = ?
+        """
+
+        db.execute(sql, [
+        grade,
+        title,
+        review_text,
+        recommendation,
+        existing_review[0]["id"]
+    ])
+
+    else:
+        sql = """
+        INSERT INTO reviews
+        (book_id, user_id, grade, title, review_text, recommendation)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """
+
+        db.execute(sql, [
+        id,
+        user_id,
+        grade,
+        title,
+        review_text,
+        recommendation
+        ])
+
+    return redirect("/book/" + str(id))
 
 @app.route("/edit_book/<int:id>")
 def edit_book(id):
