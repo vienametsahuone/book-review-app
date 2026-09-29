@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}Lisää kirja{% endblock %}
+
+{% block content %}
+
+<h2>Lisää kirja</h2>
+
+{% if errors %}
+    {% for error in errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
+{% endif %}
+
+<form action="/create_book" method="post">
+
+  <p>
+    Nimi:<br>
+    <input type="text" name="title" maxlength="150" required>
+  </p>
+
+  <p>
+    Tekijä:<br>
+    <input type="text" name="author" maxlength="100" required>
+  </p>
+
+  <p>
+    Vuosi:<br>
+    <input type="number" name="year" min="0" max="2026" required>
+  </p>
+
+  <p>
+    Genre:<br>
+    <input type="text" name="genre" maxlength="100" required>
+  </p>
+
+  <p>
+    Sivumäärä:<br>
+    <input type="number" name="page_count" min="0" required>
+  </p>
+
+  <p>
+    Kuvaus:<br>
+    <textarea name="description" maxlength="1000"></textarea>
+  </p>
+
+  <input type="submit" value="Lisää kirja">
+
+</form>
+
+{% endblock %}

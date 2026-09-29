@@ -42,7 +42,7 @@ def login():
     
 @app.route("/logout")
 def logout():
-    del session["username"]
+    session.clear()
     return redirect("/")
 
 @app.route("/register")
@@ -91,8 +91,11 @@ def create():
 
     return redirect("/login")
 
-@app.route("/create_book", methods=["POST"])
+@app.route("/create_book", methods=["GET", "POST"])
 def create_book():
+    if request.method == "GET":
+        return render_template("create_book.html")
+    
     title = request.form["title"]
     author = request.form["author"]
     year = request.form["year"]
@@ -149,7 +152,7 @@ def create_book():
         errors.append("Kuvaus saa olla enintään 1000 merkkiä")
 
     if errors:
-        return render_template("index.html", errors=errors)
+        return render_template("create_book.html", errors=errors)
 
     
     user_id = db.query(

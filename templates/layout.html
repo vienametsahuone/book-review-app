@@ -12,18 +12,21 @@
   </div>
 
   <div class="nav">
-    <nav>
-      <ul>
-        <li><a href="/">Etusivu</a></li>
-        <li><a href="/search">Haku</a></li>
-        <li><a href="/register">Luo tunnus</a></li>
-        {% if session.user_id %}
+  <nav>
+    <ul>
+      <li><a href="/">Etusivu</a></li>
+      <li><a href="/books">Kirjat</a></li>
+      <li><a href="/users">Käyttäjät</a></li>
+
+      {% if session.user_id %}
+        <li><a href="/create_book">Lisää kirja</a></li>
         <li><a href="/logout">Kirjaudu ulos</a></li>
-        {% else %}
+      {% else %}
+        <li><a href="/register">Luo tunnus</a></li>
         <li><a href="/login">Kirjaudu sisään</a></li>
-        {% endif %}
-      </ul>
-    </nav>
+      {% endif %}
+    </ul>
+  </nav>
   </div>
 
   <div class="content">
