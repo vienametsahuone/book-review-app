@@ -195,6 +195,22 @@ def books():
 
     return render_template("books.html", books=books)
 
+@app.route("/book/<int:id>")
+def book(id):
+    sql = """
+        SELECT books.*, users.username
+        FROM books
+        JOIN users ON books.added_by = users.id
+        WHERE books.id = ?
+    """
+    result = db.query(sql, [id])
+
+    if not result:
+        return render_template("book.html", book=None)
+
+    book = result[0]
+
+    return render_template("book.html", book=book)
 
 @app.route("/edit_book/<int:id>")
 def edit_book(id):
@@ -202,7 +218,7 @@ def edit_book(id):
     result = db.query(sql, [id])
 
     if not result:
-        return "Kirjaa ei löytynyt"
+        return render_template("book.html", book=None)
 
     book = result[0]
 

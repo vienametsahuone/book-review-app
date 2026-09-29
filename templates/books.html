@@ -12,16 +12,9 @@
 </form>
 
 {% for book in books %}
-  <h2>{{ book.title }}</h2>
+  <h2><a href="/book/{{ book.id }}">{{ book.title }}</a></h2>
   <p>Tekijä: {{ book.author }}</p>
   <p>Vuosi: {{ book.year }}</p>
-  <p>Genre: {{ book.genre }}</p>
-  <p>Sivumäärä: {{ book.page_count }}</p>
-  <p>{{ book.description }}</p>
-
-  {% if book.added_by == session.user_id %}
-    <a href="/edit_book/{{ book.id }}">Muokkaa</a>
-  {% endif %}
 
   <hr>
 {% endfor %}

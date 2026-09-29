@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+
+{% if book %}
+
+<h1>{{ book.title }}</h1>
+
+<p>Tekijä: {{ book.author }}</p>
+<p>Vuosi: {{ book.year }}</p>
+<p>Genre: {{ book.genre }}</p>
+<p>Sivumäärä: {{ book.page_count }}</p>
+<p>Lisännyt: {{ book.username }}</p>
+
+<h2>Kuvaus</h2>
+<p>{{ book.description }}</p>
+
+{% if book.added_by == session.user_id %}
+  <a href="/edit_book/{{ book.id }}">Muokkaa</a>
+{% endif %}
+
+{% else %}
+
+<h2>Kirjaa ei löytynyt</h2>
+
+{% endif %}
+
+{% endblock %}
