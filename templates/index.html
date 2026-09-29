@@ -16,36 +16,42 @@
 
 <h2>Lisää kirja</h2>
 
+{% if errors %}
+    {% for error in errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
+{% endif %}
+
 <form action="/create_book" method="post">
 
   <p>
     Nimi:<br>
-    <input type="text" name="title">
+    <input type="text" name="title" maxlength="150" required>
   </p>
 
   <p>
     Tekijä:<br>
-    <input type="text" name="author">
+    <input type="text" name="author" maxlength="100" required>
   </p>
 
   <p>
     Vuosi:<br>
-    <input type="number" name="year">
+    <input type="number" name="year" min="0" max="2026" required>
   </p>
 
   <p>
     Genre:<br>
-    <input type="text" name="genre">
+    <input type="text" name="genre" maxlength="100" required>
   </p>
 
   <p>
-    Page count:<br>
-    <input type="number" name="page_count">
+    Sivumäärä:<br>
+    <input type="number" name="page_count" min="0" required>
   </p>
 
   <p>
     Kuvaus:<br>
-    <textarea name="description"></textarea>
+    <textarea name="description" maxlength="1000"></textarea>
   </p>
 
   <input type="submit" value="Lisää kirja">
@@ -58,8 +64,11 @@
 
 {% else %}
 
-<form action="/login" method="post">
+{% if error %}
+  <p class="error">{{ error }}</p>
+{% endif %}
 
+<form action="/login" method="post">
   <p>
     Tunnus:<br>
     <input type="text" name="username">
@@ -71,7 +80,6 @@
   </p>
 
   <input type="submit" value="Kirjaudu">
-
 </form>
 
 {% endif %}

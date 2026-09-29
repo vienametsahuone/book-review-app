@@ -13,26 +13,31 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    if request.method == "GET":
+        return render_template("index.html")
+
     username = request.form["username"]
     password = request.form["password"]
-    
-    sql = "SELECT id, password_hash FROM users WHERE username = ?"
-    result = db.query(sql, [username])
 
-    if not result:
-        return "VIRHE: väärä tunnus tai salasana"
+    result = db.query(
+        "SELECT id, password_hash FROM users WHERE username = ?",
+        [username]
+    )
 
-    user_id = result[0][0]
-    password_hash = result[0][1]
+    if len(result) == 0:
+        return render_template("index.html", error="Väärä tunnus tai salasana")
 
-    if check_password_hash(password_hash, password):
-        session["username"] = username
-        session["user_id"] = user_id
-        return redirect("/")
-    else:
-        return "VIRHE: väärä tunnus tai salasana"
+    user = result[0]
+
+    if not check_password_hash(user["password_hash"], password):
+        return render_template("index.html", error="Väärä tunnus tai salasana")
+
+    session["user_id"] = user["id"]
+    session["username"] = username
+
+    return redirect("/")
 
     
 @app.route("/logout")
@@ -44,22 +49,47 @@ def logout():
 def register():
     return render_template("register.html")
 
+
 @app.route("/create", methods=["POST"])
 def create():
     username = request.form["username"]
     password1 = request.form["password1"]
     password2 = request.form["password2"]
+
+    if not username:
+        return render_template("register.html",
+                               error="Tunnus puuttuu")
+
+    if not password1:
+        return render_template("register.html",
+                               error="Salasana puuttuu")
+
+    if len(username) > 25:
+        return render_template("register.html",
+                                error="Tunnuksessa voi olla korkeintaan 25 kirjainta")
+
     if password1 != password2:
-        return "VIRHE: salasanat eivät ole samat"
+        return render_template("register.html",
+                               error="Salasanat eivät täsmää")
+
+    if username == password1:
+        return render_template("register.html",
+                                       error="Tunnus ei voi olla sama kuin salasana")
+
+    if len(password1) < 5:
+        return render_template("register.html",
+                                       error="Salasanassa on oltava vähintään 5 kirjainta")
+
     password_hash = generate_password_hash(password1)
 
     try:
         sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
         db.execute(sql, [username, password_hash])
     except sqlite3.IntegrityError:
-        return "VIRHE: tunnus on jo varattu"
+        return render_template("register.html",
+                               error="Tunnus on jo varattu")
 
-    return "Tunnus luotu"
+    return redirect("/login")
 
 @app.route("/create_book", methods=["POST"])
 def create_book():
@@ -70,6 +100,58 @@ def create_book():
     genre = request.form["genre"]
     page_count = request.form["page_count"]
 
+    errors = []
+
+    if not title:
+        errors.append("Nimi on pakollinen")
+
+    if len(title) > 150:
+        errors.append("Nimi saa olla enintään 150 merkkiä")
+
+    if not author:
+        errors.append("Tekijä on pakollinen")
+
+    if len(author) > 100:
+        errors.append("Tekijä saa olla enintään 100 merkkiä")
+
+    if not year:
+        errors.append("Vuosi on pakollinen")
+
+    elif not year.isdigit():
+        errors.append("Vuoden tulee olla numero")
+
+    else:
+        year = int(year)
+
+        if year > 2026 or year < 0:
+            errors.append("Vuoden tulee olla väliltä 0 ja 2026")
+
+    if not genre:
+        errors.append("Genre on pakollinen")
+
+    if len(genre) > 100:
+        errors.append("Genre saa olla enintään 100 merkkiä")
+
+    if not page_count:
+        errors.append("Sivumäärä on pakollinen")
+
+    elif not page_count.isdigit():
+        errors.append("Sivumäärän tulee olla numero")
+
+    else:
+        page_count = int(page_count)
+
+        if page_count < 0:
+            errors.append("Sivumäärä ei voi olla negatiivinen")
+    
+
+    if len(description) > 1000:
+        errors.append("Kuvaus saa olla enintään 1000 merkkiä")
+
+    if errors:
+        return render_template("index.html", errors=errors)
+
+    
     user_id = db.query(
         "SELECT id FROM users WHERE username = ?",
         [session["username"]]
