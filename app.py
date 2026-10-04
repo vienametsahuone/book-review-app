@@ -394,3 +394,72 @@ def update_book(id):
                     ])
 
     return redirect("/books")
+
+@app.route("/users")
+def users():
+    sql = """
+        SELECT users.id, users.username,
+            (SELECT COUNT(*) FROM books
+             WHERE books.added_by = users.id) AS books_added,
+            (SELECT COUNT(*) FROM reviews
+             WHERE reviews.user_id = users.id) AS reviews_written
+        FROM users
+        ORDER BY users.username
+    """
+
+    users = db.query(sql)
+
+    return render_template("users.html", users=users)
+
+
+@app.route("/user/<int:id>")
+def user(id):
+    sql = """
+        SELECT id, username, joined_at
+        FROM users
+        WHERE id = ?
+    """
+    result = db.query(sql, [id])
+
+    if not result:
+        return render_template("user.html", user=None, reviews=[])
+
+    user = result[0]
+
+    sql = """
+        SELECT COUNT(*) AS books_added
+        FROM books
+        WHERE added_by = ?
+    """
+    books_added = db.query(sql, [id])[0]["books_added"]
+
+    sql = """
+        SELECT COUNT(*) AS reviews_written,
+               AVG(grade) AS average_grade
+        FROM reviews
+        WHERE user_id = ?
+    """
+    result = db.query(sql, [id])[0]
+
+    reviews_written = result["reviews_written"]
+    average_grade = result["average_grade"]
+
+    sql = """
+        SELECT reviews.*, books.title AS book_title
+        FROM reviews
+        JOIN books ON reviews.book_id = books.id
+        WHERE reviews.user_id = ?
+        ORDER BY reviews.created_at DESC
+    """
+    reviews = db.query(sql, [id])
+
+    return render_template(
+        "user.html",
+        user=user,
+        books_added=books_added,
+        reviews_written=reviews_written,
+        average_grade=average_grade,
+        reviews=reviews
+    )
+
+

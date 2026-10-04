@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}Käyttäjät{% endblock %}
+
+{% block content %}
+
+<h1>Käyttäjät</h1>
+
+<table>
+    <tr>
+        <th>Käyttäjä</th>
+        <th>Lisätyt kirjat</th>
+        <th>Kirjoitetut arvostelut</th>
+    </tr>
+
+    {% for user in users %}
+        <tr>
+            <td>
+                <a href="/user/{{ user.id }}">{{ user.username }}</a>
+            </td>
+            <td>{{ user.books_added }}</td>
+            <td>{{ user.reviews_written }}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

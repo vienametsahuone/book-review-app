@@ -1,7 +1,7 @@
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE,
-    password_hash TEXT
+    password_hash TEXT,
     joined_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 

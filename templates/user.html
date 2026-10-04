@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {% if user %}
+        {{ user.username }}
+    {% else %}
+        Käyttäjää ei löytynyt
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if user %}
+
+<h1>{{ user.username }}</h1>
+
+<h2>Tiedot</h2>
+
+<p>Jäsen alkaen: {{ user.joined_at }}</p>
+<p>Lisätyt kirjat: {{ books_added }}</p>
+<p>Kirjoitetut arvostelut: {{ reviews_written }}</p>
+
+{% if average_grade is not none %}
+    <p>Arvostelujen keskiarvo: {{ "%.1f"|format(average_grade) }}/5</p>
+{% else %}
+    <p>Arvostelujen keskiarvo: Ei arvosteluja</p>
+{% endif %}
+
+<h2>Arvostelut</h2>
+
+{% if reviews %}
+    {% for review in reviews %}
+
+        <h3>
+            <a href="/book/{{ review.book_id }}">
+                {{ review.book_title }}
+            </a>
+        </h3>
+
+        <p>{{ review.title }}</p>
+        <p>Arvosana: {{ review.grade }}/5</p>
+        <p>{{ review.review_text }}</p>
+
+        <hr>
+
+    {% endfor %}
+{% else %}
+    <p>Käyttäjä ei ole vielä kirjoittanut arvosteluja.</p>
+{% endif %}
+
+{% else %}
+
+<h2>Käyttäjää ei löytynyt</h2>
+
+{% endif %}
+
+{% endblock %}
