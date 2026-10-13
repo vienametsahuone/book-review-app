@@ -369,18 +369,87 @@ def edit_book(id):
 
 @app.route("/edit_book/<int:id>", methods=["POST"])
 def update_book(id):
+    result = db.query("SELECT * FROM books WHERE id = ?", [id])
+
+    if not result:
+        return "Kirjaa ei löytynyt"
+
+    book = result[0]
+
+    if "user_id" not in session or book["added_by"] != session["user_id"]:
+        return "Sinulla ei ole oikeutta muokata tätä kirjaa"
+
     title = request.form["title"]
     author = request.form["author"]
     year = request.form["year"]
+    description = request.form["description"]
     genre = request.form["genre"]
     page_count = request.form["page_count"]
-    description = request.form["description"]
+
+    errors = []
+
+    if not title:
+        errors.append("Nimi on pakollinen")
+
+    if len(title) > 150:
+        errors.append("Nimi saa olla enintään 150 merkkiä")
+
+    if not author:
+        errors.append("Tekijä on pakollinen")
+
+    if len(author) > 100:
+        errors.append("Tekijä saa olla enintään 100 merkkiä")
+
+    if not year:
+        errors.append("Vuosi on pakollinen")
+
+    elif not year.isdigit():
+        errors.append("Vuoden tulee olla numero")
+
+    else:
+        year = int(year)
+
+        if year > 2026 or year < 0:
+            errors.append("Vuoden tulee olla väliltä 0 ja 2026")
+
+    if not genre:
+        errors.append("Genre on pakollinen")
+
+    if len(genre) > 100:
+        errors.append("Genre saa olla enintään 100 merkkiä")
+
+    if not page_count:
+        errors.append("Sivumäärä on pakollinen")
+
+    elif not page_count.isdigit():
+        errors.append("Sivumäärän tulee olla numero")
+
+    else:
+        page_count = int(page_count)
+
+        if page_count < 0:
+            errors.append("Sivumäärä ei voi olla negatiivinen")
+
+    if len(description) > 1000:
+        errors.append("Kuvaus saa olla enintään 1000 merkkiä")
+
+    if errors:
+        book = dict(book)
+        book["title"] = title
+        book["author"] = request.form["author"]
+        book["year"] = request.form["year"]
+        book["description"] = description
+        book["genre"] = genre
+        book["page_count"] = request.form["page_count"]
+
+        return render_template("edit_book.html", book=book, errors=errors)
+
 
     sql = """
-    UPDATE books
-    SET title = ?, author = ?, year = ?, description = ?,
-        genre = ?, page_count = ?
-    WHERE id = ?
+        UPDATE books
+        SET title = ?, author = ?, year = ?, description = ?,
+            genre = ?, page_count = ?
+        WHERE id = ?
     """
 
     db.execute(sql, [
@@ -391,7 +460,7 @@ def update_book(id):
         genre,
         page_count,
         id
-                    ])
+    ])
 
     return redirect("/books")
 
@@ -462,4 +531,61 @@ def user(id):
         reviews=reviews
     )
 
+@app.route("/delete_book/<int:id>", methods=["POST"])
+def delete_book(id):
+    if "user_id" not in session:
+        return redirect("/login")
 
+    result = db.query(
+        "SELECT * FROM books WHERE id = ?",
+        [id]
+    )
+
+    if not result:
+        return "Kirjaa ei löytynyt"
+
+    book = result[0]
+
+    if book["added_by"] != session["user_id"]:
+        return "Sinulla ei ole oikeutta poistaa tätä kirjaa"
+
+    reviews = db.query(
+        "SELECT id FROM reviews WHERE book_id = ?",
+        [id]
+    )
+
+    if reviews:
+        return redirect("/book/" + str(id))
+
+    db.execute(
+        "DELETE FROM books WHERE id = ?",
+        [id]
+    )
+
+    return redirect("/books")
+
+
+@app.route("/delete_review/<int:id>", methods=["POST"])
+def delete_review(id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    review = db.query(
+        "SELECT * FROM reviews WHERE id = ?",
+        [id]
+    )
+
+    if not review:
+        return "Arvostelua ei löytynyt"
+
+    if review[0]["user_id"] != session["user_id"]:
+        return "Sinulla ei ole oikeutta poistaa tätä arvostelua"
+
+    book_id = review[0]["book_id"]
+
+    db.execute(
+        "DELETE FROM reviews WHERE id = ?",
+        [id]
+    )
+
+    return redirect("/book/" + str(book_id))

@@ -17,8 +17,14 @@
 <h2>Kuvaus</h2>
 <p>{{ book.description }}</p>
 
-{% if book.added_by == session.user_id %}
-  <a href="/edit_book/{{ book.id }}">Muokkaa</a>
+{% if session.user_id == book.added_by %}
+    <a href="/edit_book/{{ book.id }}">Muokkaa</a>
+
+    {% if not reviews %}
+        <form action="/delete_book/{{ book.id }}" method="post">
+            <input type="submit" value="Poista kirja">
+        </form>
+    {% endif %}
 {% endif %}
 
 <h2>Arvostelut</h2>
@@ -38,6 +44,11 @@
       <p>Suositus: Neutraali</p>
     {% elif review.recommendation == 3 %}
       <p>Suositus: Suosittelee</p>
+    {% endif %}
+    {% if session.user_id == review.user_id %}
+    <form action="/delete_review/{{ review.id }}" method="post">
+        <input type="submit" value="Poista arvostelu">
+    </form>
     {% endif %}
 
     <hr>
