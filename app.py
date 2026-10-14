@@ -52,33 +52,38 @@ def register():
 
 @app.route("/create", methods=["POST"])
 def create():
-    username = request.form["username"]
+    username = request.form["username"].strip()
     password1 = request.form["password1"]
     password2 = request.form["password2"]
 
-    if not username:
-        return render_template("register.html",
-                               error="Tunnus puuttuu")
+    errors = []
 
-    if not password1:
-        return render_template("register.html",
-                               error="Salasana puuttuu")
+    if username and not all(
+        char.isascii() and (char.isalnum() or char == "_")
+        for char in username
+    ):
+        errors.append("Tunnuksessa saa olla vain englannin kirjaimia, numeroita ja alaviivoja")
+
+    if not username:
+        errors.append("Tunnus ei voi olla tyhjä tai sisältää vain välilyöntejä")
+
+    if not password1.strip():
+        errors.append("Salasana ei voi olla tyhjä tai sisältää vain välilyöntejä")
 
     if len(username) > 25:
-        return render_template("register.html",
-                                error="Tunnuksessa voi olla korkeintaan 25 kirjainta")
+        errors.append("Tunnuksessa voi olla korkeintaan 25 merkkiä")
 
     if password1 != password2:
-        return render_template("register.html",
-                               error="Salasanat eivät täsmää")
+        errors.append("Salasanat eivät täsmää")
 
-    if username == password1:
-        return render_template("register.html",
-                                       error="Tunnus ei voi olla sama kuin salasana")
+    if username and password1 and username == password1:
+        errors.append("Tunnus ei voi olla sama kuin salasana")
 
-    if len(password1) < 5:
-        return render_template("register.html",
-                                       error="Salasanassa on oltava vähintään 5 kirjainta")
+    if password1.strip() and len(password1) < 5:
+        errors.append("Salasanassa on oltava vähintään 5 merkkiä")
+
+    if errors:
+        return render_template("register.html", errors=errors)
 
     password_hash = generate_password_hash(password1)
 
@@ -86,73 +91,81 @@ def create():
         sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
         db.execute(sql, [username, password_hash])
     except sqlite3.IntegrityError:
-        return render_template("register.html",
-                               error="Tunnus on jo varattu")
+        return render_template(
+            "register.html",
+            errors=["Tunnus on jo varattu"]
+        )
 
     return redirect("/login")
+
 
 @app.route("/create_book", methods=["GET", "POST"])
 def create_book():
     if request.method == "GET":
         return render_template("create_book.html")
     
-    title = request.form["title"]
-    author = request.form["author"]
-    year = request.form["year"]
-    description = request.form["description"]
-    genre = request.form["genre"]
-    page_count = request.form["page_count"]
+    title = request.form["title"].strip()
+    author = request.form["author"].strip()
+    year = request.form["year"].strip()
+    description = request.form["description"].strip()
+    genre = request.form["genre"].strip()
+    page_count = request.form["page_count"].strip()
 
     errors = []
 
     if not title:
         errors.append("Nimi on pakollinen")
-
-    if len(title) > 150:
+    elif len(title) > 150:
         errors.append("Nimi saa olla enintään 150 merkkiä")
 
     if not author:
         errors.append("Tekijä on pakollinen")
-
-    if len(author) > 100:
+    elif len(author) > 100:
         errors.append("Tekijä saa olla enintään 100 merkkiä")
 
     if not year:
         errors.append("Vuosi on pakollinen")
-
     elif not year.isdigit():
         errors.append("Vuoden tulee olla numero")
-
     else:
         year = int(year)
-
-        if year > 2026 or year < 0:
-            errors.append("Vuoden tulee olla väliltä 0 ja 2026")
+        if year > 2026:
+            errors.append("Vuosi ei voi olla tulevaisuudessa")
 
     if not genre:
         errors.append("Genre on pakollinen")
-
-    if len(genre) > 100:
+    elif len(genre) > 100:
         errors.append("Genre saa olla enintään 100 merkkiä")
 
     if not page_count:
         errors.append("Sivumäärä on pakollinen")
-
     elif not page_count.isdigit():
         errors.append("Sivumäärän tulee olla numero")
-
     else:
         page_count = int(page_count)
-
-        if page_count < 0:
-            errors.append("Sivumäärä ei voi olla negatiivinen")
-    
+        if page_count < 1:
+            errors.append("Sivumäärä ei voi olla 0 tai negatiivinen")
+        if page_count > 5000:
+            errors.append("Sivumäärä ei voi olla yli 5000")
 
     if len(description) > 1000:
         errors.append("Kuvaus saa olla enintään 1000 merkkiä")
 
     if errors:
-        return render_template("create_book.html", errors=errors)
+        book = {
+            "title": request.form["title"],
+            "author": request.form["author"],
+            "year": request.form["year"],
+            "description": request.form["description"],
+            "genre": request.form["genre"],
+            "page_count": request.form["page_count"]
+        }
+
+        return render_template(
+            "create_book.html",
+            errors=errors,
+            book=book
+        )
 
     
     user_id = db.query(
@@ -241,115 +254,100 @@ def book(id):
         user_review=user_review
     )
 
+
 @app.route("/book/<int:id>/review", methods=["POST"])
-def create_review(id):
-    grade = request.form["grade"]
-    title = request.form["title"]
-    review_text = request.form["review_text"]
-    recommendation = request.form["recommendation"]
+def review(id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    grade = request.form.get("grade", "").strip()
+    title = request.form.get("title", "").strip()
+    review_text = request.form.get("review_text", "").strip()
+    recommendation = request.form.get("recommendation", "").strip()
 
     errors = []
 
-    if not grade:
-        errors.append("Arvosana on pakollinen")
-    elif not grade.isdigit():
-        errors.append("Arvosanan tulee olla numero")
-    else:
-        grade = int(grade)
-
-        if grade < 1 or grade > 5:
-            errors.append("Arvosanan tulee olla väliltä 1 ja 5")
+    if not grade.isdigit() or not 1 <= int(grade) <= 5:
+        errors.append("Arvosanan tulee olla numero väliltä 1–5")
 
     if not title:
         errors.append("Otsikko on pakollinen")
-
-    if len(title) > 150:
+    elif len(title) > 150:
         errors.append("Otsikko saa olla enintään 150 merkkiä")
 
     if not review_text:
         errors.append("Arvostelu on pakollinen")
-
-    if len(review_text) > 2000:
+    elif len(review_text) > 2000:
         errors.append("Arvostelu saa olla enintään 2000 merkkiä")
 
-    if not recommendation:
-        errors.append("Suositus on pakollinen")
-    elif not recommendation.isdigit():
-        errors.append("Suosituksen tulee olla numero")
-    else:
-        recommendation = int(recommendation)
-
-        if recommendation < 1 or recommendation > 3:
-            errors.append("Suosituksen tulee olla väliltä 1 ja 3")
+    if not recommendation.isdigit() or not 1 <= int(recommendation) <= 3:
+        errors.append("Valitse kelvollinen suositus")
 
     if errors:
+        book_result = db.query("""
+            SELECT books.*, users.username
+            FROM books
+            JOIN users ON books.added_by = users.id
+            WHERE books.id = ?
+        """, [id])
+
+        if not book_result:
+            return "Kirjaa ei löytynyt"
+
+        reviews = db.query("""
+            SELECT reviews.*, users.username
+            FROM reviews
+            JOIN users ON reviews.user_id = users.id
+            WHERE reviews.book_id = ?
+            ORDER BY reviews.created_at DESC
+        """, [id])
+
+        user_review_result = db.query("""
+            SELECT *
+            FROM reviews
+            WHERE book_id = ? AND user_id = ?
+        """, [id, session["user_id"]])
+
+        user_review = user_review_result[0] if user_review_result else None
+
         return render_template(
             "book.html",
-            book=db.query(
-                """
-                SELECT books.*, users.username
-                FROM books
-                JOIN users ON books.added_by = users.id
-                WHERE books.id = ?
-                """,
-                [id]
-            )[0],
-            reviews=db.query(
-                """
-                SELECT reviews.*, users.username
-                FROM reviews
-                JOIN users ON reviews.user_id = users.id
-                WHERE reviews.book_id = ?
-                ORDER BY reviews.created_at DESC
-                """,
-                [id]
-            ),
+            book=book_result[0],
+            reviews=reviews,
+            user_review=user_review,
             errors=errors
         )
 
-    user_id = session["user_id"]
+    grade = int(grade)
+    recommendation = int(recommendation)
 
-    existing_review = db.query(
-    """
-    SELECT id
-    FROM reviews
-    WHERE book_id = ? AND user_id = ?
-    """,
-    [id, user_id]
-    )
+    existing_review = db.query("""
+        SELECT id
+        FROM reviews
+        WHERE book_id = ? AND user_id = ?
+    """, [id, session["user_id"]])
 
     if existing_review:
-        sql = """
-        UPDATE reviews
-        SET grade = ?, title = ?, review_text = ?, recommendation = ?
-        WHERE id = ?
-        """
-
-        db.execute(sql, [
-        grade,
-        title,
-        review_text,
-        recommendation,
-        existing_review[0]["id"]
-    ])
-
+        db.execute("""
+            UPDATE reviews
+            SET grade = ?, title = ?, review_text = ?, recommendation = ?
+            WHERE book_id = ? AND user_id = ?
+        """, [
+            grade, title, review_text, recommendation,
+            id, session["user_id"]
+        ])
     else:
-        sql = """
-        INSERT INTO reviews
-        (book_id, user_id, grade, title, review_text, recommendation)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """
-
-        db.execute(sql, [
-        id,
-        user_id,
-        grade,
-        title,
-        review_text,
-        recommendation
+        db.execute("""
+            INSERT INTO reviews
+            (book_id, user_id, grade, title, review_text, recommendation)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, [
+            id, session["user_id"], grade, title,
+            review_text, recommendation
         ])
 
     return redirect("/book/" + str(id))
+
 
 @app.route("/edit_book/<int:id>")
 def edit_book(id):
@@ -379,56 +377,49 @@ def update_book(id):
     if "user_id" not in session or book["added_by"] != session["user_id"]:
         return "Sinulla ei ole oikeutta muokata tätä kirjaa"
 
-    title = request.form["title"]
-    author = request.form["author"]
-    year = request.form["year"]
-    description = request.form["description"]
-    genre = request.form["genre"]
-    page_count = request.form["page_count"]
+    title = request.form["title"].strip()
+    author = request.form["author"].strip()
+    year = request.form["year"].strip()
+    description = request.form["description"].strip()
+    genre = request.form["genre"].strip()
+    page_count = request.form["page_count"].strip()
 
     errors = []
 
     if not title:
         errors.append("Nimi on pakollinen")
-
-    if len(title) > 150:
+    elif len(title) > 150:
         errors.append("Nimi saa olla enintään 150 merkkiä")
 
     if not author:
         errors.append("Tekijä on pakollinen")
-
-    if len(author) > 100:
+    elif len(author) > 100:
         errors.append("Tekijä saa olla enintään 100 merkkiä")
 
     if not year:
         errors.append("Vuosi on pakollinen")
-
     elif not year.isdigit():
         errors.append("Vuoden tulee olla numero")
-
     else:
         year = int(year)
-
-        if year > 2026 or year < 0:
-            errors.append("Vuoden tulee olla väliltä 0 ja 2026")
+        if year > 2026:
+            errors.append("Vuosi ei voi olla tulevaisuudessa")
 
     if not genre:
         errors.append("Genre on pakollinen")
-
-    if len(genre) > 100:
+    elif len(genre) > 100:
         errors.append("Genre saa olla enintään 100 merkkiä")
 
     if not page_count:
         errors.append("Sivumäärä on pakollinen")
-
     elif not page_count.isdigit():
         errors.append("Sivumäärän tulee olla numero")
-
     else:
         page_count = int(page_count)
-
-        if page_count < 0:
+        if page_count < 1:
             errors.append("Sivumäärä ei voi olla negatiivinen")
+        if page_count > 5000:
+            errors.append("Sivumäärä ei voi olla yli 5000")
 
     if len(description) > 1000:
         errors.append("Kuvaus saa olla enintään 1000 merkkiä")
