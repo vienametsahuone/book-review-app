@@ -19,6 +19,12 @@
   {% endfor %}
   </p>
   <p>Tekijä: {{ book.author }}</p>
+  {% if book.review_count > 0 %}
+    <p>Keskiarvo: {{ "%.1f"|format(book.average_grade) }}/5
+       ({{ book.review_count }} arvostelua)</p>
+  {% else %}
+    <p>Ei vielä arvosteluja</p>
+  {% endif %}
   <p>Vuosi: {{ book.year }}</p>
 
   <hr>

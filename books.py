@@ -39,6 +39,11 @@ def get_books(search=""):
             [book["id"]]
         )
 
+    for book in book_list:
+        rating = get_book_rating(book["id"])
+        book["average_grade"] = rating["average_grade"]
+        book["review_count"] = rating["review_count"]
+
     return book_list
 
 
@@ -69,7 +74,25 @@ def get_book(id):
         [id]
     )
 
+    rating = get_book_rating(id)
+    book["average_grade"] = rating["average_grade"]
+    book["review_count"] = rating["review_count"]
+
     return book
+
+
+def get_book_rating(book_id):
+    result = db.query(
+        """
+        SELECT COUNT(*) AS review_count,
+               AVG(grade) AS average_grade
+        FROM reviews
+        WHERE book_id = ?
+        """,
+        [book_id]
+    )
+
+    return result[0]
 
 
 def get_book_for_edit(id):

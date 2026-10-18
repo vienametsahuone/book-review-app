@@ -8,8 +8,10 @@ import books as book_data
 import reviews as review_data
 import users as user_data
 
+
 app = Flask(__name__)
 app.secret_key = config.secret_key
+
 
 @app.before_request
 def ensure_csrf_token():
@@ -20,6 +22,7 @@ def ensure_csrf_token():
 def check_csrf():
     if request.form.get("csrf_token") != session.get("csrf_token"):
         abort(403)
+
 
 @app.route("/")
 def index():
@@ -243,62 +246,6 @@ def book(id):
     )
 
 
-@app.route("/book/<int:id>/review", methods=["POST"])
-def review(id):
-    check_csrf()
-    if "user_id" not in session:
-        return redirect("/login")
-
-    grade = request.form.get("grade", "").strip()
-    title = request.form.get("title", "").strip()
-    review_text = request.form.get("review_text", "").strip()
-    recommendation = request.form.get("recommendation", "").strip()
-
-    errors = []
-
-    if not grade.isdigit() or not 1 <= int(grade) <= 5:
-        errors.append("Arvosanan tulee olla numero väliltä 1–5")
-
-    if not title:
-        errors.append("Otsikko on pakollinen")
-    elif len(title) > 150:
-        errors.append("Otsikko saa olla enintään 150 merkkiä")
-
-    if not review_text:
-        errors.append("Arvostelu on pakollinen")
-    elif len(review_text) > 2000:
-        errors.append("Arvostelu saa olla enintään 2000 merkkiä")
-
-    if not recommendation.isdigit() or not 1 <= int(recommendation) <= 3:
-        errors.append("Valitse kelvollinen suositus")
-
-    book_info = book_data.get_book(id)
-    if not book_info:
-        return "Kirjaa ei löytynyt"
-
-    if errors:
-        return render_template(
-            "book.html",
-            book=book_info,
-            reviews=review_data.get_reviews_for_book(id),
-            user_review=review_data.get_user_review(
-                id, session["user_id"]
-            ),
-            errors=errors
-        )
-
-    review_data.save_review(
-        id,
-        session["user_id"],
-        int(grade),
-        title,
-        review_text,
-        int(recommendation)
-    )
-
-    return redirect("/book/" + str(id))
-
-
 @app.route("/edit_book/<int:id>")
 def edit_book(id):
     book_info = book_data.get_book_for_edit(id)
@@ -404,6 +351,103 @@ def update_book(id):
     return redirect("/book/" + str(id))
 
 
+@app.route("/delete_book/<int:id>", methods=["POST"])
+def delete_book(id):
+    check_csrf()
+    if "user_id" not in session:
+        return redirect("/login")
+
+    book_info = book_data.get_book_for_edit(id)
+
+    if not book_info:
+        return "Kirjaa ei löytynyt"
+
+    if book_info["added_by"] != session["user_id"]:
+        return "Sinulla ei ole oikeutta poistaa tätä kirjaa"
+
+    if review_data.count_reviews_for_book(id):
+        return redirect("/book/" + str(id))
+
+    book_data.delete_book(id)
+
+    return redirect("/books")
+
+
+@app.route("/book/<int:id>/review", methods=["POST"])
+def review(id):
+    check_csrf()
+    if "user_id" not in session:
+        return redirect("/login")
+
+    grade = request.form.get("grade", "").strip()
+    title = request.form.get("title", "").strip()
+    review_text = request.form.get("review_text", "").strip()
+    recommendation = request.form.get("recommendation", "").strip()
+
+    errors = []
+
+    if not grade.isdigit() or not 1 <= int(grade) <= 5:
+        errors.append("Arvosanan tulee olla numero väliltä 1–5")
+
+    if not title:
+        errors.append("Otsikko on pakollinen")
+    elif len(title) > 150:
+        errors.append("Otsikko saa olla enintään 150 merkkiä")
+
+    if not review_text:
+        errors.append("Arvostelu on pakollinen")
+    elif len(review_text) > 2000:
+        errors.append("Arvostelu saa olla enintään 2000 merkkiä")
+
+    if not recommendation.isdigit() or not 1 <= int(recommendation) <= 3:
+        errors.append("Valitse kelvollinen suositus")
+
+    book_info = book_data.get_book(id)
+    if not book_info:
+        return "Kirjaa ei löytynyt"
+
+    if errors:
+        return render_template(
+            "book.html",
+            book=book_info,
+            reviews=review_data.get_reviews_for_book(id),
+            user_review=review_data.get_user_review(
+                id, session["user_id"]
+            ),
+            errors=errors
+        )
+
+    review_data.save_review(
+        id,
+        session["user_id"],
+        int(grade),
+        title,
+        review_text,
+        int(recommendation)
+    )
+
+    return redirect("/book/" + str(id))
+
+
+@app.route("/delete_review/<int:id>", methods=["POST"])
+def delete_review(id):
+    check_csrf()
+    if "user_id" not in session:
+        return redirect("/login")
+
+    review_info = review_data.get_review(id)
+
+    if not review_info:
+        return "Arvostelua ei löytynyt"
+
+    if review_info["user_id"] != session["user_id"]:
+        return "Sinulla ei ole oikeutta poistaa tätä arvostelua"
+
+    book_id = review_data.delete_review(id)
+
+    return redirect("/book/" + str(book_id))
+
+
 @app.route("/users")
 def users():
     user_list = user_data.get_users()
@@ -429,44 +473,3 @@ def user(id):
         average_grade=stats["average_grade"],
         reviews=user_reviews
     )
-
-
-@app.route("/delete_book/<int:id>", methods=["POST"])
-def delete_book(id):
-    check_csrf()
-    if "user_id" not in session:
-        return redirect("/login")
-
-    book_info = book_data.get_book_for_edit(id)
-
-    if not book_info:
-        return "Kirjaa ei löytynyt"
-
-    if book_info["added_by"] != session["user_id"]:
-        return "Sinulla ei ole oikeutta poistaa tätä kirjaa"
-
-    if review_data.count_reviews_for_book(id):
-        return redirect("/book/" + str(id))
-
-    book_data.delete_book(id)
-
-    return redirect("/books")
-
-
-@app.route("/delete_review/<int:id>", methods=["POST"])
-def delete_review(id):
-    check_csrf()
-    if "user_id" not in session:
-        return redirect("/login")
-
-    review_info = review_data.get_review(id)
-
-    if not review_info:
-        return "Arvostelua ei löytynyt"
-
-    if review_info["user_id"] != session["user_id"]:
-        return "Sinulla ei ole oikeutta poistaa tätä arvostelua"
-
-    book_id = review_data.delete_review(id)
-
-    return redirect("/book/" + str(book_id))
