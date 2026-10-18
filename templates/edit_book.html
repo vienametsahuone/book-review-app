@@ -13,6 +13,7 @@
 {% endif %}
 
 <form action="/edit_book/{{ book.id }}" method="post">
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
   <p>
     Nimi:<br>

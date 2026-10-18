@@ -26,6 +26,7 @@
 
     {% if not reviews %}
         <form action="/delete_book/{{ book.id }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
             <input type="submit" value="Poista kirja">
         </form>
     {% endif %}
@@ -52,6 +53,7 @@
 
         {% if session.user_id == review.user_id %}
             <form action="/delete_review/{{ review.id }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
                 <input type="submit" value="Poista arvostelu">
             </form>
         {% endif %}
@@ -83,6 +85,7 @@
 {% set recommendation_value = request.form.get('recommendation', user_review.recommendation if user_review else 2)|int %}
 
 <form action="/book/{{ book.id }}/review" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
     <p>
         Arvosana:<br>

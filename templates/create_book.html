@@ -14,6 +14,7 @@
 {% endif %}
 
 <form action="/create_book" method="post">
+  <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
   <p>
     Nimi:<br>
@@ -34,7 +35,7 @@
   </p>
 
   <p>
-    Genret (valitse enintään 3):<br>
+    Genre (valitse enintään 3):<br>
     {% for genre in genres %}
         <label>
             <input type="checkbox"

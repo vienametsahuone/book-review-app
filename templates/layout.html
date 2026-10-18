@@ -20,7 +20,12 @@
 
       {% if session.user_id %}
         <li><a href="/create_book">Lisää kirja</a></li>
-        <li><a href="/logout">Kirjaudu ulos</a></li>
+        <li>
+          <form action="/logout" method="post">
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+            <button type="submit">Kirjaudu ulos</button>
+          </form>
+        </li>
       {% else %}
         <li><a href="/register">Luo tunnus</a></li>
         <li><a href="/login">Kirjaudu sisään</a></li>

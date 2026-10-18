@@ -1,7 +1,7 @@
 import sqlite3
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, abort
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import secrets
 import config
 import db
 import books as book_data
@@ -11,6 +11,15 @@ import users as user_data
 app = Flask(__name__)
 app.secret_key = config.secret_key
 
+@app.before_request
+def ensure_csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_hex(16)
+
+
+def check_csrf():
+    if request.form.get("csrf_token") != session.get("csrf_token"):
+        abort(403)
 
 @app.route("/")
 def index():
@@ -21,6 +30,8 @@ def index():
 def login():
     if request.method == "GET":
         return render_template("index.html")
+
+    check_csrf()
 
     username = request.form["username"]
     password = request.form["password"]
@@ -34,12 +45,14 @@ def login():
 
     session["user_id"] = user["id"]
     session["username"] = username
+    session["csrf_token"] = secrets.token_hex(16)
 
     return redirect("/")
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["POST"])
 def logout():
+    check_csrf()
     session.clear()
     return redirect("/")
 
@@ -51,6 +64,7 @@ def register():
 
 @app.route("/create", methods=["POST"])
 def create():
+    check_csrf()
     username = request.form["username"].strip()
     password1 = request.form["password1"]
     password2 = request.form["password2"]
@@ -105,6 +119,9 @@ def create():
 
 @app.route("/create_book", methods=["GET", "POST"])
 def create_book():
+    if request.method == "POST":
+        check_csrf()
+
     if "user_id" not in session:
         return redirect("/login")
 
@@ -228,6 +245,7 @@ def book(id):
 
 @app.route("/book/<int:id>/review", methods=["POST"])
 def review(id):
+    check_csrf()
     if "user_id" not in session:
         return redirect("/login")
 
@@ -301,6 +319,7 @@ def edit_book(id):
 
 @app.route("/edit_book/<int:id>", methods=["POST"])
 def update_book(id):
+    check_csrf()
     book_info = book_data.get_book_for_edit(id)
 
     if not book_info:
@@ -414,6 +433,7 @@ def user(id):
 
 @app.route("/delete_book/<int:id>", methods=["POST"])
 def delete_book(id):
+    check_csrf()
     if "user_id" not in session:
         return redirect("/login")
 
@@ -435,6 +455,7 @@ def delete_book(id):
 
 @app.route("/delete_review/<int:id>", methods=["POST"])
 def delete_review(id):
+    check_csrf()
     if "user_id" not in session:
         return redirect("/login")
 
