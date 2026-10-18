@@ -1,12 +1,16 @@
 import sqlite3
-from flask import Flask, g
-import config
-from flask import redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
+
+import config
 import db
+import books as book_data
+import reviews as review_data
+import users as user_data
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
+
 
 @app.route("/")
 def index():
@@ -21,29 +25,24 @@ def login():
     username = request.form["username"]
     password = request.form["password"]
 
-    result = db.query(
-        "SELECT id, password_hash FROM users WHERE username = ?",
-        [username]
-    )
+    user = user_data.get_login_user(username)
 
-    if len(result) == 0:
-        return render_template("index.html", error="Väärä tunnus tai salasana")
-
-    user = result[0]
-
-    if not check_password_hash(user["password_hash"], password):
-        return render_template("index.html", error="Väärä tunnus tai salasana")
+    if not user or not check_password_hash(user["password_hash"], password):
+        return render_template(
+            "index.html", error="Väärä tunnus tai salasana"
+        )
 
     session["user_id"] = user["id"]
     session["username"] = username
 
     return redirect("/")
 
-    
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
+
 
 @app.route("/register")
 def register():
@@ -62,13 +61,19 @@ def create():
         char.isascii() and (char.isalnum() or char == "_")
         for char in username
     ):
-        errors.append("Tunnuksessa saa olla vain englannin kirjaimia, numeroita ja alaviivoja")
+        errors.append(
+            "Tunnuksessa saa olla vain englannin kirjaimia, numeroita ja alaviivoja"
+        )
 
     if not username:
-        errors.append("Tunnus ei voi olla tyhjä tai sisältää vain välilyöntejä")
+        errors.append(
+            "Tunnus ei voi olla tyhjä tai sisältää vain välilyöntejä"
+        )
 
     if not password1.strip():
-        errors.append("Salasana ei voi olla tyhjä tai sisältää vain välilyöntejä")
+        errors.append(
+            "Salasana ei voi olla tyhjä tai sisältää vain välilyöntejä"
+        )
 
     if len(username) > 25:
         errors.append("Tunnuksessa voi olla korkeintaan 25 merkkiä")
@@ -88,8 +93,7 @@ def create():
     password_hash = generate_password_hash(password1)
 
     try:
-        sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
-        db.execute(sql, [username, password_hash])
+        user_data.create_user(username, password_hash)
     except sqlite3.IntegrityError:
         return render_template(
             "register.html",
@@ -101,14 +105,16 @@ def create():
 
 @app.route("/create_book", methods=["GET", "POST"])
 def create_book():
+    if "user_id" not in session:
+        return redirect("/login")
+
     if request.method == "GET":
-        genres = db.query("SELECT * FROM genres ORDER BY name")
         return render_template(
             "create_book.html",
-            genres=genres,
+            genres=book_data.get_genres(),
             selected_genres=[]
         )
-    
+
     title = request.form["title"].strip()
     author = request.form["author"].strip()
     year = request.form["year"].strip()
@@ -137,7 +143,7 @@ def create_book():
         if year > 2026:
             errors.append("Vuosi ei voi olla tulevaisuudessa")
 
-    genres = db.query("SELECT * FROM genres ORDER BY name")
+    genres = book_data.get_genres()
     valid_genre_ids = {str(genre["id"]) for genre in genres}
 
     if not selected_genres:
@@ -164,10 +170,10 @@ def create_book():
 
     if errors:
         book = {
-            "title": request.form["title"],
-            "author": request.form["author"],
+            "title": title,
+            "author": author,
             "year": request.form["year"],
-            "description": request.form["description"],
+            "description": description,
             "page_count": request.form["page_count"]
         }
 
@@ -179,138 +185,45 @@ def create_book():
             selected_genres=selected_genres
         )
 
-    
-    user_id = db.query(
-        "SELECT id FROM users WHERE username = ?",
-        [session["username"]]
-    )[0][0]
+    book_id = book_data.create_book(
+        title, author, year, description, page_count,
+        session["user_id"], selected_genres
+    )
 
-    sql = """
-        INSERT INTO books
-        (title, author, year, description, page_count, added_by)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """
-
-    db.execute(sql, [
-        title,
-        author,
-        year,
-        description,
-        page_count,
-        user_id
-    ])
-
-    book_id = g.last_insert_id
-
-    for genre_id in selected_genres:
-        db.execute(
-            "INSERT INTO book_genres (book_id, genre_id) VALUES (?, ?)",
-            [book_id, int(genre_id)]
-        )
-
-        return redirect("/book/" + str(book_id))
+    return redirect("/book/" + str(book_id))
 
 
 @app.route("/books")
 def books():
     search = request.args.get("search", "").strip()
+    book_list = book_data.get_books(search)
 
-    if search:
-        search_value = "%" + search + "%"
-        sql = """
-            SELECT DISTINCT books.*
-            FROM books
-            LEFT JOIN book_genres ON books.id = book_genres.book_id
-            LEFT JOIN genres ON book_genres.genre_id = genres.id
-            WHERE books.title LIKE ?
-               OR books.author LIKE ?
-               OR genres.name LIKE ?
-            ORDER BY books.title
-        """
-        books = db.query(
-            sql, [search_value, search_value, search_value]
-        )
-        books = [dict(book) for book in books]
-    else:
-        sql = "SELECT * FROM books ORDER BY title"
-        books = db.query(sql)
-        books = [dict(book) for book in books]
-
-    for book in books:
-        book["genres"] = db.query(
-            """
-            SELECT genres.name
-            FROM genres
-            JOIN book_genres ON genres.id = book_genres.genre_id
-            WHERE book_genres.book_id = ?
-            ORDER BY genres.name
-            """,
-            [book["id"]]
-        )
-
-    return render_template("books.html", books=books)
-
+    return render_template("books.html", books=book_list)
 
 
 @app.route("/book/<int:id>")
 def book(id):
-    sql = """
-        SELECT books.*, users.username
-        FROM books
-        JOIN users ON books.added_by = users.id
-        WHERE books.id = ?
-    """
-    result = db.query(sql, [id])
+    book_info = book_data.get_book(id)
 
-    if not result:
+    if not book_info:
         return render_template(
             "book.html", book=None, reviews=[], user_review=None
         )
 
-    book = dict(result[0])
-
-    book["genres"] = db.query(
-        """
-        SELECT genres.name
-        FROM genres
-        JOIN book_genres ON genres.id = book_genres.genre_id
-        WHERE book_genres.book_id = ?
-        ORDER BY genres.name
-        """,
-        [id]
-    )
-
-    sql = """
-        SELECT reviews.*, users.username
-        FROM reviews
-        JOIN users ON reviews.user_id = users.id
-        WHERE reviews.book_id = ?
-        ORDER BY reviews.created_at DESC
-    """
-    reviews = db.query(sql, [id])
+    book_reviews = review_data.get_reviews_for_book(id)
 
     user_review = None
-
     if "user_id" in session:
-        result = db.query(
-            """
-            SELECT *
-            FROM reviews
-            WHERE book_id = ? AND user_id = ?
-            """,
-            [id, session["user_id"]]
+        user_review = review_data.get_user_review(
+            id, session["user_id"]
         )
-
-        if result:
-            user_review = result[0]
 
     return render_template(
         "book.html",
-        book=book,
-        reviews=reviews,
+        book=book_info,
+        reviews=book_reviews,
         user_review=user_review
     )
-
 
 
 @app.route("/book/<int:id>/review", methods=["POST"])
@@ -341,113 +254,59 @@ def review(id):
     if not recommendation.isdigit() or not 1 <= int(recommendation) <= 3:
         errors.append("Valitse kelvollinen suositus")
 
+    book_info = book_data.get_book(id)
+    if not book_info:
+        return "Kirjaa ei löytynyt"
+
     if errors:
-        book_result = db.query("""
-            SELECT books.*, users.username
-            FROM books
-            JOIN users ON books.added_by = users.id
-            WHERE books.id = ?
-        """, [id])
-
-        if not book_result:
-            return "Kirjaa ei löytynyt"
-
-        reviews = db.query("""
-            SELECT reviews.*, users.username
-            FROM reviews
-            JOIN users ON reviews.user_id = users.id
-            WHERE reviews.book_id = ?
-            ORDER BY reviews.created_at DESC
-        """, [id])
-
-        user_review_result = db.query("""
-            SELECT *
-            FROM reviews
-            WHERE book_id = ? AND user_id = ?
-        """, [id, session["user_id"]])
-
-        user_review = user_review_result[0] if user_review_result else None
-
         return render_template(
             "book.html",
-            book=book_result[0],
-            reviews=reviews,
-            user_review=user_review,
+            book=book_info,
+            reviews=review_data.get_reviews_for_book(id),
+            user_review=review_data.get_user_review(
+                id, session["user_id"]
+            ),
             errors=errors
         )
 
-    grade = int(grade)
-    recommendation = int(recommendation)
-
-    existing_review = db.query("""
-        SELECT id
-        FROM reviews
-        WHERE book_id = ? AND user_id = ?
-    """, [id, session["user_id"]])
-
-    if existing_review:
-        db.execute("""
-            UPDATE reviews
-            SET grade = ?, title = ?, review_text = ?, recommendation = ?
-            WHERE book_id = ? AND user_id = ?
-        """, [
-            grade, title, review_text, recommendation,
-            id, session["user_id"]
-        ])
-    else:
-        db.execute("""
-            INSERT INTO reviews
-            (book_id, user_id, grade, title, review_text, recommendation)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, [
-            id, session["user_id"], grade, title,
-            review_text, recommendation
-        ])
+    review_data.save_review(
+        id,
+        session["user_id"],
+        int(grade),
+        title,
+        review_text,
+        int(recommendation)
+    )
 
     return redirect("/book/" + str(id))
 
 
-
 @app.route("/edit_book/<int:id>")
 def edit_book(id):
-    result = db.query("SELECT * FROM books WHERE id = ?", [id])
+    book_info = book_data.get_book_for_edit(id)
 
-    if not result:
+    if not book_info:
         return "Kirjaa ei löytynyt"
 
-    book = dict(result[0])
-
-    if "user_id" not in session or book["added_by"] != session["user_id"]:
+    if "user_id" not in session or book_info["added_by"] != session["user_id"]:
         return "Sinulla ei ole oikeutta muokata tätä kirjaa"
-
-    genres = db.query("SELECT * FROM genres ORDER BY name")
-
-    selected_genres = [
-        str(row["genre_id"])
-        for row in db.query(
-            "SELECT genre_id FROM book_genres WHERE book_id = ?",
-            [id]
-        )
-    ]
 
     return render_template(
         "edit_book.html",
-        book=book,
-        genres=genres,
-        selected_genres=selected_genres
+        book=book_info,
+        genres=book_data.get_genres(),
+        selected_genres=book_data.get_selected_genres(id)
     )
 
 
 @app.route("/edit_book/<int:id>", methods=["POST"])
 def update_book(id):
-    result = db.query("SELECT * FROM books WHERE id = ?", [id])
+    book_info = book_data.get_book_for_edit(id)
 
-    if not result:
+    if not book_info:
         return "Kirjaa ei löytynyt"
 
-    book = dict(result[0])
-
-    if "user_id" not in session or book["added_by"] != session["user_id"]:
+    if "user_id" not in session or book_info["added_by"] != session["user_id"]:
         return "Sinulla ei ole oikeutta muokata tätä kirjaa"
 
     title = request.form["title"].strip()
@@ -478,7 +337,7 @@ def update_book(id):
         if year > 2026:
             errors.append("Vuosi ei voi olla tulevaisuudessa")
 
-    genres = db.query("SELECT * FROM genres ORDER BY name")
+    genres = book_data.get_genres()
     valid_genre_ids = {str(genre["id"]) for genre in genres}
 
     if not selected_genres:
@@ -504,138 +363,72 @@ def update_book(id):
         errors.append("Kuvaus saa olla enintään 1000 merkkiä")
 
     if errors:
-        book["title"] = title
-        book["author"] = author
-        book["year"] = request.form["year"]
-        book["description"] = description
-        book["page_count"] = request.form["page_count"]
+        book_info["title"] = title
+        book_info["author"] = author
+        book_info["year"] = request.form["year"]
+        book_info["description"] = description
+        book_info["page_count"] = request.form["page_count"]
 
         return render_template(
             "edit_book.html",
-            book=book,
+            book=book_info,
             genres=genres,
             selected_genres=selected_genres,
             errors=errors
         )
 
-    sql = """
-        UPDATE books
-        SET title = ?, author = ?, year = ?, description = ?,
-            page_count = ?
-        WHERE id = ?
-    """
-    db.execute(sql, [
-        title, author, year, description, page_count, id
-    ])
-
-    db.execute("DELETE FROM book_genres WHERE book_id = ?", [id])
-
-    for genre_id in selected_genres:
-        db.execute(
-            "INSERT INTO book_genres (book_id, genre_id) VALUES (?, ?)",
-            [id, int(genre_id)]
-        )
+    book_data.update_book(
+        id, title, author, year, description, page_count,
+        selected_genres
+    )
 
     return redirect("/book/" + str(id))
 
 
 @app.route("/users")
 def users():
-    sql = """
-        SELECT users.id, users.username,
-            (SELECT COUNT(*) FROM books
-             WHERE books.added_by = users.id) AS books_added,
-            (SELECT COUNT(*) FROM reviews
-             WHERE reviews.user_id = users.id) AS reviews_written
-        FROM users
-        ORDER BY users.username
-    """
-
-    users = db.query(sql)
-
-    return render_template("users.html", users=users)
+    user_list = user_data.get_users()
+    return render_template("users.html", users=user_list)
 
 
 @app.route("/user/<int:id>")
 def user(id):
-    sql = """
-        SELECT id, username, joined_at
-        FROM users
-        WHERE id = ?
-    """
-    result = db.query(sql, [id])
+    user_info = user_data.get_user(id)
 
-    if not result:
+    if not user_info:
         return render_template("user.html", user=None, reviews=[])
 
-    user = result[0]
-
-    sql = """
-        SELECT COUNT(*) AS books_added
-        FROM books
-        WHERE added_by = ?
-    """
-    books_added = db.query(sql, [id])[0]["books_added"]
-
-    sql = """
-        SELECT COUNT(*) AS reviews_written,
-               AVG(grade) AS average_grade
-        FROM reviews
-        WHERE user_id = ?
-    """
-    result = db.query(sql, [id])[0]
-
-    reviews_written = result["reviews_written"]
-    average_grade = result["average_grade"]
-
-    sql = """
-        SELECT reviews.*, books.title AS book_title
-        FROM reviews
-        JOIN books ON reviews.book_id = books.id
-        WHERE reviews.user_id = ?
-        ORDER BY reviews.created_at DESC
-    """
-    reviews = db.query(sql, [id])
+    books_added = user_data.get_books_added_count(id)
+    stats = review_data.get_user_review_stats(id)
+    user_reviews = review_data.get_user_reviews(id)
 
     return render_template(
         "user.html",
-        user=user,
+        user=user_info,
         books_added=books_added,
-        reviews_written=reviews_written,
-        average_grade=average_grade,
-        reviews=reviews
+        reviews_written=stats["reviews_written"],
+        average_grade=stats["average_grade"],
+        reviews=user_reviews
     )
+
 
 @app.route("/delete_book/<int:id>", methods=["POST"])
 def delete_book(id):
     if "user_id" not in session:
         return redirect("/login")
 
-    result = db.query(
-        "SELECT * FROM books WHERE id = ?",
-        [id]
-    )
+    book_info = book_data.get_book_for_edit(id)
 
-    if not result:
+    if not book_info:
         return "Kirjaa ei löytynyt"
 
-    book = result[0]
-
-    if book["added_by"] != session["user_id"]:
+    if book_info["added_by"] != session["user_id"]:
         return "Sinulla ei ole oikeutta poistaa tätä kirjaa"
 
-    reviews = db.query(
-        "SELECT id FROM reviews WHERE book_id = ?",
-        [id]
-    )
-
-    if reviews:
+    if review_data.count_reviews_for_book(id):
         return redirect("/book/" + str(id))
 
-    db.execute(
-        "DELETE FROM books WHERE id = ?",
-        [id]
-    )
+    book_data.delete_book(id)
 
     return redirect("/books")
 
@@ -645,22 +438,14 @@ def delete_review(id):
     if "user_id" not in session:
         return redirect("/login")
 
-    review = db.query(
-        "SELECT * FROM reviews WHERE id = ?",
-        [id]
-    )
+    review_info = review_data.get_review(id)
 
-    if not review:
+    if not review_info:
         return "Arvostelua ei löytynyt"
 
-    if review[0]["user_id"] != session["user_id"]:
+    if review_info["user_id"] != session["user_id"]:
         return "Sinulla ei ole oikeutta poistaa tätä arvostelua"
 
-    book_id = review[0]["book_id"]
-
-    db.execute(
-        "DELETE FROM reviews WHERE id = ?",
-        [id]
-    )
+    book_id = review_data.delete_review(id)
 
     return redirect("/book/" + str(book_id))
