@@ -3,7 +3,7 @@ from flask import g
 
 
 def get_genres():
-    return db.query("SELECT * FROM genres ORDER BY name")
+    return db.query("SELECT id, name FROM genres ORDER BY name")
 
 
 def get_books(search=""):
@@ -23,7 +23,11 @@ def get_books(search=""):
             sql, [search_value, search_value, search_value]
         )
     else:
-        result = db.query("SELECT * FROM books ORDER BY title")
+        result = db.query("""
+            SELECT id, title, author, year, description, page_count, added_by
+            FROM books
+            ORDER BY title
+        """)
 
     book_list = [dict(book) for book in result]
 
@@ -96,7 +100,11 @@ def get_book_rating(book_id):
 
 
 def get_book_for_edit(id):
-    result = db.query("SELECT * FROM books WHERE id = ?", [id])
+    result = db.query("""
+        SELECT id, title, author, year, description, page_count, added_by
+        FROM books
+        WHERE id = ?
+    """, [id])
 
     if not result:
         return None

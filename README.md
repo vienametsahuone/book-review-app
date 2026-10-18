@@ -1,29 +1,62 @@
-# Book review app
+# Book Review App
 
-* Users can add books that they have read. Books have details such as author, genre, page count, plot description, and average review score. 
+## Description
 
-* Users can create an account and log in to the app. 
+A web application for sharing book reviews. Users can register, log in, add books, search for books, and write reviews with ratings and recommendations. Each book has its own page displaying its information, reviews, and average rating.
 
-* Users can add books and edit the books they have added. 
+Users can edit their own books and reviews. Books cannot be deleted if doing so would remove reviews written by other users.
 
-* Users can see all the books added to the app. 
+## Requirements
 
-* Users can search for books based on the name or author. 
+- Python 3
+- Flask
+- SQLite
 
-* The user page shows how many books the user has added, lists the added books and reviews by the user, and shows the average score the user has given to the books they have reviewed. 
+## Setup
 
-* Users can choose classifications, such as genre. 
+### 1. Clone the repository
 
-* Users can add reviews for the books, with a comment and score. Books also show the comments and reviews from users. 
+Clone the repository and navigate to the project directory.
 
-# How to use
+### 2. Create a virtual environment
 
-* Clone the repo: git clone https://github.com/vienametsahuone/book-review-app
+Run the following commands:
 
-* Install dependencies: pip install -r requirements.txt
+    python3 -m venv venv
+    source venv/bin/activate
 
-* To create the database, run: sqlite3 database.db < schema.sql 
+### 3. Install Flask
 
-* First create an account from the front page. After creating the account, go back to the front page to add books.
+    pip install flask
 
-* Please note that there is no delete feature, as users cannot delete books they have added in order to prevent other users’ reviews from being deleted. 
+### 4. Create the database
+
+The database file is not included in the repository. Create it using the provided SQL schema file:
+
+    sqlite3 database.db < schema.sql
+
+This creates the database and inserts the initial genre data.
+
+## Running the application
+
+Make sure the virtual environment is activated and you are in the project directory. Start the application with:
+
+    flask run
+
+Open the local URL shown in the terminal in your browser.
+
+## Testing the application
+
+1. Register a new user account and log in.
+2. Add a book and select its genres.
+3. Browse the book list and search for books.
+4. Open a book's page and check its information and average rating.
+5. Write a review with a rating and recommendation.
+6. Edit a book you added and a review you wrote.
+7. Visit the users page and your own profile.
+8. Log out.
+
+## Notes
+
+- The database must be created locally before running the application.
+- SQLite is used to store users, books, genres, and reviews.

@@ -16,10 +16,13 @@
     <ul>
       <li><a href="/">Etusivu</a></li>
       <li><a href="/books">Kirjat</a></li>
+      {% if session.user_id %}
+        <li><a href="/create_book">Lisää kirja</a></li>
+      {% endif %}
       <li><a href="/users">Käyttäjät</a></li>
 
       {% if session.user_id %}
-        <li><a href="/create_book">Lisää kirja</a></li>
+        <li><a href="/user/{{ session.user_id }}">Oma profiili</a></li>       
         <li>
           <form action="/logout" method="post">
             <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">

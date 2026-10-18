@@ -17,7 +17,8 @@ def get_reviews_for_book(book_id):
 def get_user_review(book_id, user_id):
     result = db.query(
         """
-        SELECT *
+        SELECT id, book_id, user_id, grade, title, review_text,
+               recommendation, created_at
         FROM reviews
         WHERE book_id = ? AND user_id = ?
         """,
@@ -66,7 +67,12 @@ def save_review(book_id, user_id, grade, title,
 
 
 def get_review(id):
-    result = db.query("SELECT * FROM reviews WHERE id = ?", [id])
+    result = db.query("""
+        SELECT id, book_id, user_id, grade, title, review_text,
+               recommendation, created_at
+        FROM reviews
+        WHERE id = ?
+    """, [id])
     return result[0] if result else None
 
 
