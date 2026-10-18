@@ -10,7 +10,11 @@
 
 <p>Tekijä: {{ book.author }}</p>
 <p>Vuosi: {{ book.year }}</p>
-<p>Genre: {{ book.genre }}</p>
+<p>Genre:
+    {% for genre in book.genres %}
+        {{ genre.name }}{% if not loop.last %}, {% endif %}
+    {% endfor %}
+</p>
 <p>Sivumäärä: {{ book.page_count }}</p>
 <p>Lisännyt: {{ book.username }}</p>
 

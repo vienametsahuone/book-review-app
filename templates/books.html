@@ -13,6 +13,11 @@
 
 {% for book in books %}
   <h2><a href="/book/{{ book.id }}">{{ book.title }}</a></h2>
+  <p>Genre:
+  {% for genre in book.genres %}
+    {{ genre.name }}{% if not loop.last %}, {% endif %}
+  {% endfor %}
+  </p>
   <p>Tekijä: {{ book.author }}</p>
   <p>Vuosi: {{ book.year }}</p>
 

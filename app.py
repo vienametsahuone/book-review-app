@@ -208,24 +208,49 @@ def create_book():
             [book_id, int(genre_id)]
         )
 
-        return redirect("/")
+        return redirect("/book/" + str(book_id))
+
 
 @app.route("/books")
 def books():
-    search = request.args.get("search", "")
+    search = request.args.get("search", "").strip()
 
     if search:
+        search_value = "%" + search + "%"
         sql = """
-            SELECT * FROM books
-            WHERE title LIKE ? OR author LIKE ?
+            SELECT DISTINCT books.*
+            FROM books
+            LEFT JOIN book_genres ON books.id = book_genres.book_id
+            LEFT JOIN genres ON book_genres.genre_id = genres.id
+            WHERE books.title LIKE ?
+               OR books.author LIKE ?
+               OR genres.name LIKE ?
+            ORDER BY books.title
         """
-        search = "%" + search + "%"
-        books = db.query(sql, [search, search])
+        books = db.query(
+            sql, [search_value, search_value, search_value]
+        )
+        books = [dict(book) for book in books]
     else:
-        sql = "SELECT * FROM books"
+        sql = "SELECT * FROM books ORDER BY title"
         books = db.query(sql)
+        books = [dict(book) for book in books]
+
+    for book in books:
+        book["genres"] = db.query(
+            """
+            SELECT genres.name
+            FROM genres
+            JOIN book_genres ON genres.id = book_genres.genre_id
+            WHERE book_genres.book_id = ?
+            ORDER BY genres.name
+            """,
+            [book["id"]]
+        )
 
     return render_template("books.html", books=books)
+
+
 
 @app.route("/book/<int:id>")
 def book(id):
@@ -238,9 +263,22 @@ def book(id):
     result = db.query(sql, [id])
 
     if not result:
-        return render_template("book.html", book=None, reviews=[])
+        return render_template(
+            "book.html", book=None, reviews=[], user_review=None
+        )
 
-    book = result[0]
+    book = dict(result[0])
+
+    book["genres"] = db.query(
+        """
+        SELECT genres.name
+        FROM genres
+        JOIN book_genres ON genres.id = book_genres.genre_id
+        WHERE book_genres.book_id = ?
+        ORDER BY genres.name
+        """,
+        [id]
+    )
 
     sql = """
         SELECT reviews.*, users.username
@@ -272,6 +310,7 @@ def book(id):
         reviews=reviews,
         user_review=user_review
     )
+
 
 
 @app.route("/book/<int:id>/review", methods=["POST"])
@@ -368,20 +407,35 @@ def review(id):
     return redirect("/book/" + str(id))
 
 
+
 @app.route("/edit_book/<int:id>")
 def edit_book(id):
-    sql = "SELECT * FROM books WHERE id = ?"
-    result = db.query(sql, [id])
+    result = db.query("SELECT * FROM books WHERE id = ?", [id])
 
     if not result:
-        return render_template("book.html", book=None)
+        return "Kirjaa ei löytynyt"
 
-    book = result[0]
+    book = dict(result[0])
 
-    if book["added_by"] != session["user_id"]:
+    if "user_id" not in session or book["added_by"] != session["user_id"]:
         return "Sinulla ei ole oikeutta muokata tätä kirjaa"
 
-    return render_template("edit_book.html", book=book)
+    genres = db.query("SELECT * FROM genres ORDER BY name")
+
+    selected_genres = [
+        str(row["genre_id"])
+        for row in db.query(
+            "SELECT genre_id FROM book_genres WHERE book_id = ?",
+            [id]
+        )
+    ]
+
+    return render_template(
+        "edit_book.html",
+        book=book,
+        genres=genres,
+        selected_genres=selected_genres
+    )
 
 
 @app.route("/edit_book/<int:id>", methods=["POST"])
@@ -391,7 +445,7 @@ def update_book(id):
     if not result:
         return "Kirjaa ei löytynyt"
 
-    book = result[0]
+    book = dict(result[0])
 
     if "user_id" not in session or book["added_by"] != session["user_id"]:
         return "Sinulla ei ole oikeutta muokata tätä kirjaa"
@@ -400,8 +454,8 @@ def update_book(id):
     author = request.form["author"].strip()
     year = request.form["year"].strip()
     description = request.form["description"].strip()
-    genre = request.form["genre"].strip()
     page_count = request.form["page_count"].strip()
+    selected_genres = request.form.getlist("genres")
 
     errors = []
 
@@ -424,10 +478,16 @@ def update_book(id):
         if year > 2026:
             errors.append("Vuosi ei voi olla tulevaisuudessa")
 
-    if not genre:
-        errors.append("Genre on pakollinen")
-    elif len(genre) > 100:
-        errors.append("Genre saa olla enintään 100 merkkiä")
+    genres = db.query("SELECT * FROM genres ORDER BY name")
+    valid_genre_ids = {str(genre["id"]) for genre in genres}
+
+    if not selected_genres:
+        errors.append("Valitse vähintään yksi genre")
+    elif len(selected_genres) > 3:
+        errors.append("Voit valita enintään kolme genreä")
+
+    if any(genre_id not in valid_genre_ids for genre_id in selected_genres):
+        errors.append("Valitse kelvolliset genret")
 
     if not page_count:
         errors.append("Sivumäärä on pakollinen")
@@ -436,7 +496,7 @@ def update_book(id):
     else:
         page_count = int(page_count)
         if page_count < 1:
-            errors.append("Sivumäärä ei voi olla negatiivinen")
+            errors.append("Sivumäärän tulee olla vähintään 1")
         if page_count > 5000:
             errors.append("Sivumäärä ei voi olla yli 5000")
 
@@ -444,35 +504,40 @@ def update_book(id):
         errors.append("Kuvaus saa olla enintään 1000 merkkiä")
 
     if errors:
-        book = dict(book)
         book["title"] = title
-        book["author"] = request.form["author"]
+        book["author"] = author
         book["year"] = request.form["year"]
         book["description"] = description
-        book["genre"] = genre
         book["page_count"] = request.form["page_count"]
 
-        return render_template("edit_book.html", book=book, errors=errors)
-
+        return render_template(
+            "edit_book.html",
+            book=book,
+            genres=genres,
+            selected_genres=selected_genres,
+            errors=errors
+        )
 
     sql = """
         UPDATE books
         SET title = ?, author = ?, year = ?, description = ?,
-            genre = ?, page_count = ?
+            page_count = ?
         WHERE id = ?
     """
-
     db.execute(sql, [
-        title,
-        author,
-        year,
-        description,
-        genre,
-        page_count,
-        id
+        title, author, year, description, page_count, id
     ])
 
-    return redirect("/books")
+    db.execute("DELETE FROM book_genres WHERE book_id = ?", [id])
+
+    for genre_id in selected_genres:
+        db.execute(
+            "INSERT INTO book_genres (book_id, genre_id) VALUES (?, ?)",
+            [id, int(genre_id)]
+        )
+
+    return redirect("/book/" + str(id))
+
 
 @app.route("/users")
 def users():

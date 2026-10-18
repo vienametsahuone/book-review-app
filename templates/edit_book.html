@@ -33,9 +33,16 @@
   </p>
 
   <p>
-    Genre:<br>
-    <input type="text" name="genre" maxlength="100"
-           value="{{ book.genre }}">
+    Genret (valitse 1–3):<br>
+    {% for genre in genres %}
+        <label>
+            <input type="checkbox"
+                   name="genres"
+                   value="{{ genre.id }}"
+                   {% if genre.id|string in selected_genres %}checked{% endif %}>
+            {{ genre.name }}
+        </label><br>
+    {% endfor %}
   </p>
 
   <p>
