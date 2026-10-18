@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask
+from flask import Flask, g
 import config
 from flask import redirect, render_template, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -94,13 +94,18 @@ def create():
 @app.route("/create_book", methods=["GET", "POST"])
 def create_book():
     if request.method == "GET":
-        return render_template("create_book.html")
+        genres = db.query("SELECT * FROM genres ORDER BY name")
+        return render_template(
+            "create_book.html",
+            genres=genres,
+            selected_genres=[]
+        )
     
     title = request.form["title"]
     author = request.form["author"]
     year = request.form["year"]
     description = request.form["description"]
-    genre = request.form["genre"]
+    selected_genres = request.form.getlist("genres")
     page_count = request.form["page_count"]
 
     errors = []
@@ -129,11 +134,16 @@ def create_book():
         if year > 2026 or year < 0:
             errors.append("Vuoden tulee olla väliltä 0 ja 2026")
 
-    if not genre:
-        errors.append("Genre on pakollinen")
+    genres = db.query("SELECT * FROM genres ORDER BY name")
+    valid_genre_ids = {str(genre["id"]) for genre in genres}
 
-    if len(genre) > 100:
-        errors.append("Genre saa olla enintään 100 merkkiä")
+    if not selected_genres:
+        errors.append("Valitse vähintään yksi genre")
+    elif len(selected_genres) > 3:
+        errors.append("Voit valita enintään kolme genreä")
+
+    if any(genre_id not in valid_genre_ids for genre_id in selected_genres):
+        errors.append("Valitse kelvolliset genret")
 
     if not page_count:
         errors.append("Sivumäärä on pakollinen")
@@ -144,15 +154,29 @@ def create_book():
     else:
         page_count = int(page_count)
 
-        if page_count < 0:
-            errors.append("Sivumäärä ei voi olla negatiivinen")
+        if page_count < 1:
+            errors.append("Sivumäärä ei voi olla 0 tai negatiivinen")
     
 
     if len(description) > 1000:
         errors.append("Kuvaus saa olla enintään 1000 merkkiä")
 
     if errors:
-        return render_template("create_book.html", errors=errors)
+        book = {
+            "title": title,
+            "author": author,
+            "year": request.form["year"],
+            "description": description,
+            "page_count": request.form["page_count"]
+        }
+
+        return render_template(
+            "create_book.html",
+            errors=errors,
+            book=book,
+            genres=genres,
+            selected_genres=selected_genres
+        )
 
     
     user_id = db.query(
@@ -161,22 +185,29 @@ def create_book():
     )[0][0]
 
     sql = """
-    INSERT INTO books
-    (title, author, year, description, genre, page_count, added_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-"""
+        INSERT INTO books
+        (title, author, year, description, page_count, added_by)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """
 
     db.execute(sql, [
         title,
         author,
         year,
         description,
-        genre,
         page_count,
         user_id
-                    ])
+    ])
 
-    return redirect("/")
+    book_id = g.last_insert_id
+
+    for genre_id in selected_genres:
+        db.execute(
+            "INSERT INTO book_genres (book_id, genre_id) VALUES (?, ?)",
+            [book_id, int(genre_id)]
+        )
+
+        return redirect("/")
 
 @app.route("/books")
 def books():

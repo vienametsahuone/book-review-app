@@ -11,7 +11,6 @@ CREATE TABLE books (
     author TEXT,
     year INTEGER,
     description TEXT,
-    genre TEXT,
     page_count INTEGER,
     added_by INTEGER,
     FOREIGN KEY (added_by) REFERENCES users(id)
@@ -30,3 +29,40 @@ CREATE TABLE reviews (
     FOREIGN KEY (user_id) REFERENCES users(id),
     UNIQUE(book_id, user_id)
 );
+
+
+CREATE TABLE genres (
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE book_genres (
+    book_id INTEGER NOT NULL,
+    genre_id INTEGER NOT NULL,
+    PRIMARY KEY (book_id, genre_id),
+    FOREIGN KEY (book_id) REFERENCES books(id),
+    FOREIGN KEY (genre_id) REFERENCES genres(id)
+);
+
+INSERT INTO genres (name) VALUES
+    ('Fantasy'),
+    ('Science fiction'),
+    ('Mystery'),
+    ('Thriller'),
+    ('Romance'),
+    ('Horror'),
+    ('Historical fiction'),
+    ('Contemporary fiction'),
+    ('Literary fiction'),
+    ('Adventure'),
+    ('Biography'),
+    ('History'),
+    ('Self-help'),
+    ('Science'),
+    ('Psychology'),
+    ('Children''s books'),
+    ('Middle grade'),
+    ('Young adult'),
+    ('Graphic novels'),
+    ('Poetry'),
+    ('Other');
