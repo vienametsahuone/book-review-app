@@ -1,10 +1,11 @@
+
 {% extends "layout.html" %}
 
 {% block title %}Lisää kirja{% endblock %}
 
 {% block content %}
 
-<h2>Lisää kirja</h2>
+<h1>Lisää kirja</h1>
 
 {% if errors %}
     {% for error in errors %}
@@ -45,19 +46,21 @@
     {% endfor %}
   </p>
 
-  <p>
-    Sivumäärä:<br>
-    <input type="number" name="page_count" min="0" required
-           value="{{ book.page_count if book else '' }}">
-  </p>
+    <p>
+        Sivumäärä:<br>
+        <input type="number" name="page_count" min="1" max="5000" required
+               value="{{ book.page_count if book else '' }}">
+    </p>
 
   <p>
     Kuvaus:<br>
     <textarea name="description" maxlength="1000">{{ book.description if book else '' }}</textarea>
   </p>
 
-  <input type="submit" value="Lisää kirja">
+    <input type="submit" value="Tallenna">
 
 </form>
+
+<a href="/books">Peruuta</a>
 
 {% endblock %}

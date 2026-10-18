@@ -4,8 +4,10 @@
 
 {% block content %}
 
-{% if error %}
-  <p class="error">{{ error }}</p>
+{% if errors %}
+    {% for error in errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
 {% endif %}
 
 <form action="/create" method="post">

@@ -6,36 +6,47 @@
 
 <h1>Muokkaa kirjaa</h1>
 
+{% if errors %}
+    {% for error in errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
+{% endif %}
+
 <form action="/edit_book/{{ book.id }}" method="post">
 
   <p>
     Nimi:<br>
-    <input type="text" name="title" value="{{ book.title }}">
+    <input type="text" name="title" maxlength="150"
+           value="{{ book.title }}">
   </p>
 
   <p>
     Tekijä:<br>
-    <input type="text" name="author" value="{{ book.author }}">
+    <input type="text" name="author" maxlength="100"
+           value="{{ book.author }}">
   </p>
 
   <p>
     Vuosi:<br>
-    <input type="number" name="year" value="{{ book.year }}">
+    <input type="number" name="year" min="0" max="2026"
+           value="{{ book.year }}">
   </p>
 
   <p>
     Genre:<br>
-    <input type="text" name="genre" value="{{ book.genre }}">
+    <input type="text" name="genre" maxlength="100"
+           value="{{ book.genre }}">
   </p>
 
   <p>
-    Page count:<br>
-    <input type="number" name="page_count" value="{{ book.page_count }}">
+    Sivumäärä:<br>
+    <input type="number" name="page_count" min="0"
+           value="{{ book.page_count }}">
   </p>
 
   <p>
     Kuvaus:<br>
-    <textarea name="description">{{ book.description }}</textarea>
+    <textarea name="description" maxlength="1000">{{ book.description }}</textarea>
   </p>
 
   <input type="submit" value="Tallenna">
