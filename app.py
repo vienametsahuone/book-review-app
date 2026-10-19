@@ -26,7 +26,14 @@ def check_csrf():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    latest_reviews = review_data.get_latest_reviews()
+    random_book = book_data.get_random_book()
+
+    return render_template(
+        "index.html",
+        latest_reviews=latest_reviews,
+        random_book=random_book
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])

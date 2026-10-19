@@ -1,23 +1,71 @@
 
+:root {
+    --extra-white: #F7F8F4;
+    --dew-drop: #C9D8D8;
+    --meander-blue: #BEDBD8;
+    --rain: #A8BDBB;
+    --aquaverde: #A5C8C5;
+    --drizzle: #8CAEAB;
+    --lagoon: #518682;
+    --really-teal: #016367;
+    --oceanside: #015A6B;
+    --light-sky-blue: #CDE9F2;
+    --muted-medium-blue: #8BC0D6;
+
+    --text-color: #173D43;
+    --muted-text: #49666A;
+    --border-color: #A8C8C9;
+    --card-background: #E8F5FA;
+    --soft-background: #f6ffff;
+
+    --rating-background: #F5E8BB;
+    --rating-text: #654D18;
+
+    --negative-background: #F6DEDC;
+    --negative-text: #8A302D;
+    --neutral-background: #F5E8BB;
+    --neutral-text: #654D18;
+    --positive-background: #D9EBDD;
+    --positive-text: #285B40;
+}
+
 body {
     margin: auto;
     max-width: 50em;
     font-family: sans-serif;
-    background-color: lightblue;
+    background-color: var(--drizzle);
+    color: var(--text-color);
 }
 
 .header {
-    background-color: white;
-    color: darkblue;
+    background-color: var(--oceanside);
+    color: var(--extra-white);
     text-align: center;
-    padding: 1em;
+    padding: 1.5em 1em;
     margin: 0.5em 0;
+    border-radius: 10px;
+}
+
+.header h1 {
+    font-size: 2em;
+    letter-spacing: normal;
+}
+
+.header h1::after {
+    content: "";
+    display: block;
+    width: 60px;
+    height: 3px;
+    background-color: var(--muted-medium-blue);
+    margin: 0.5em auto 0;
+    border-radius: 2px;
 }
 
 .nav {
-    background-color: darkslategray;
+    background-color: var(--really-teal);
     padding: 0.5em;
     margin: 0.1em 0;
+    border-radius: 8px;
 }
 
 .nav ul {
@@ -30,13 +78,27 @@ body {
 }
 
 .nav a {
-    color: white;
+    color: var(--extra-white);
+}
+
+.nav a:hover {
+    color: var(--light-sky-blue);
+}
+
+.nav button {
+    background-color: var(--lagoon);
+    color: var(--extra-white);
+    border: none;
+    padding: 0.4em 0.7em;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 .content {
-    background-color: white;
+    background-color: var(--extra-white);
     padding: 1em;
     margin: 0.5em 0;
+    border-radius: 10px;
 }
 
 h1 {
@@ -47,20 +109,28 @@ h2 {
     margin: 1.5em 0 0.5em;
 }
 
+a {
+    color: var(--really-teal);
+}
+
+a:hover {
+    color: var(--lagoon);
+}
+
 .error {
-    color: red;
+    color: var(--negative-text);
     font-weight: bold;
 }
 
 /* Review cards */
 
 .review-card {
-    background-color: #eefcff;
-    border: 1px solid #dce3eb;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 1.25em;
     margin-bottom: 1.25em;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .review-card h3 {
@@ -78,14 +148,15 @@ h2 {
 .review-rating {
     font-weight: bold;
     white-space: nowrap;
-    background-color: #fef3c7;
+    background-color: var(--rating-background);
+    color: var(--rating-text);
     padding: 0.3em 0.6em;
     border-radius: 5px;
 }
 
 .review-author,
 .review-date {
-    color: #64748b;
+    color: var(--muted-text);
 }
 
 .review-author {
@@ -105,29 +176,27 @@ h2 {
 }
 
 .not-recommended {
-    background-color: #fee2e2;
-    color: #991b1b;
+    background-color: var(--negative-background);
+    color: var(--negative-text);
 }
 
 .neutral {
-    background-color: #fef3c7;
-    color: #92400e;
+    background-color: var(--neutral-background);
+    color: var(--neutral-text);
 }
 
 .recommended {
-    background-color: #dcfce7;
-    color: #166534;
+    background-color: var(--positive-background);
+    color: var(--positive-text);
 }
 
-/* Book card */
-
 .book-card {
-    background-color: white;
-    border: 1px solid #dce3eb;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 1.5em;
     margin: 1.5em 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .book-card h1 {
@@ -140,7 +209,8 @@ h2 {
 
 .book-average {
     display: inline-block;
-    background-color: #fef3c7;
+    background-color: var(--rating-background);
+    color: var(--rating-text);
     padding: 0.5em 0.8em;
     border-radius: 5px;
     font-weight: bold;
@@ -150,8 +220,8 @@ h2 {
 
 .book-info-box,
 .book-description-box {
-    background-color: #f8fafc;
-    border: 1px solid #dce3eb;
+    background-color: var(--extra-white);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 1.25em;
     margin: 1.25em 0;
@@ -173,7 +243,7 @@ h2 {
 }
 
 .detail-label {
-    color: #64748b;
+    color: var(--muted-text);
     font-size: 0.85em;
     font-weight: bold;
 }
@@ -188,22 +258,22 @@ h2 {
 }
 
 .book-description-box p {
-    margin-top: 0.5;
+    margin-top: 0.5em;
 }
 
 .book-added-by {
-    color: #64748b;
+    color: var(--muted-text);
     font-size: 0.9em;
-    margin-top: 0.3em 0 0.5em;
+    margin: 0.3em 0 0.5em;
 }
 
 .user-name-box {
-    background-color: white;
-    border: 1px solid #dce3eb;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 1em;
     margin: 1.5em 0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
     text-align: center;
 }
 
@@ -216,8 +286,8 @@ h2 {
 }
 
 .user-info-box {
-    background-color: #f8fafc;
-    border: 1px solid #dce3eb;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 1.25em;
 }
@@ -241,12 +311,12 @@ h2 {
 }
 
 .book-list-card {
-    background-color: #f8fafc;
-    border: 1px solid #dce3eb;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 1.25em;
     margin-bottom: 1em;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .book-list-card h2 {
@@ -254,11 +324,12 @@ h2 {
 }
 
 .book-list-card h2 a {
-    color: darkblue;
+    color: var(--really-teal);
     text-decoration: none;
 }
 
 .book-list-card h2 a:hover {
+    color: var(--lagoon);
     text-decoration: underline;
 }
 
@@ -272,23 +343,24 @@ h2 {
 
 .book-list-average {
     display: inline-block;
-    background-color: #fef3c7;
+    background-color: var(--rating-background);
+    color: var(--rating-text);
     padding: 0.4em 0.7em;
     border-radius: 5px;
     font-weight: bold;
 }
 
 .no-reviews {
-    background-color: #e2e8f0;
+    background-color: var(--light-sky-blue);
 }
 
 .users-table-box {
-    background-color: white;
-    border: 1px solid #dce3eb;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     overflow: hidden;
     margin-top: 1.5em;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .users-table {
@@ -297,15 +369,15 @@ h2 {
 }
 
 .users-table th {
-    background-color: #eefcff;
-    color: #000000;
+    background-color: var(--lagoon);
+    color: var(--extra-white);
     text-align: left;
     padding: 1em;
 }
 
 .users-table td {
     padding: 1em;
-    border-top: 1px solid #dce3eb;
+    border-top: 1px solid var(--border-color);
 }
 
 .users-table td:nth-child(2),
@@ -315,16 +387,94 @@ h2 {
     text-align: center;
 }
 
+.users-table tr:nth-child(odd) {
+    background-color: #E8F5FA;
+}
+
 .users-table tr:nth-child(even) {
-    background-color: #f8fafc;
+    background-color: #E8F3EC;
 }
 
 .users-table a {
-    color: darkblue;
+    color: var(--really-teal);
     font-weight: bold;
     text-decoration: none;
 }
 
 .users-table a:hover {
     text-decoration: underline;
+}
+
+.login-status {
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--muted-text);
+    margin-bottom: 1.5em;
+    margin-top: 0;
+    padding-bottom: 1em;
+    padding-top: 1em;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Front page */
+
+.home-sections {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 1em;
+    align-items: start;
+}
+
+.home-sections h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.random-book-section,
+.latest-reviews-section {
+    min-width: 0;
+}
+
+.latest-reviews-section .review-card {
+    padding: 0.7em;
+    margin-bottom: 0.7em;
+}
+
+.latest-reviews-section .review-card h3 {
+    font-size: 1em;
+}
+
+.latest-reviews-section .review-card p {
+    margin: 0.5em 0;
+}
+
+.latest-reviews-section .review-author {
+    font-size: 0.8em;
+}
+
+.latest-reviews-section .review-date {
+    font-size: 0.75em;
+}
+
+.latest-reviews-section .review-recommendation {
+    font-size: 0.8em;
+}
+
+.content:has(.login-status) {
+    padding-top: 0;
+}
+
+.random-book-section .book-list-card h3 {
+    margin-top: 0;
+}
+
+@media (max-width: 600px) {
+    .home-sections {
+        grid-template-columns: 1fr;
+    }
+
+    .nav ul {
+        flex-wrap: wrap;
+        gap: 1em;
+    }
 }

@@ -119,3 +119,24 @@ def get_user_review_stats(user_id):
         """,
         [user_id]
     )[0]
+
+
+def get_latest_reviews():
+    sql = """
+        SELECT reviews.id,
+               reviews.user_id,
+               reviews.book_id,
+               reviews.grade,
+               reviews.title,
+               reviews.review_text,
+               reviews.recommendation,
+               reviews.created_at,
+               users.username,
+               books.title AS book_title
+        FROM reviews
+        JOIN users ON reviews.user_id = users.id
+        JOIN books ON reviews.book_id = books.id
+        ORDER BY reviews.created_at DESC
+        LIMIT 3
+    """
+    return db.query(sql)

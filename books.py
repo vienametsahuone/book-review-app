@@ -167,3 +167,31 @@ def update_book(id, title, author, year, description, page_count,
 def delete_book(id):
     db.execute("DELETE FROM book_genres WHERE book_id = ?", [id])
     db.execute("DELETE FROM books WHERE id = ?", [id])
+
+
+def get_random_book():
+    sql = """
+        SELECT id, title, author, year
+        FROM books
+        ORDER BY RANDOM()
+        LIMIT 1
+    """
+    result = db.query(sql)
+
+    if result:
+        book = dict(result[0])
+
+        book["genres"] = db.query(
+            """
+            SELECT genres.name
+            FROM genres
+            JOIN book_genres ON genres.id = book_genres.genre_id
+            WHERE book_genres.book_id = ?
+            ORDER BY genres.name
+            """,
+            [book["id"]]
+        )
+
+        return book
+
+    return None
