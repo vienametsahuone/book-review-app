@@ -8,6 +8,95 @@
     <p class="login-status">
         Olet kirjautunut sisään nimellä {{ session.username }}
     </p>
+
+    <div class="home-sections">
+
+        <section class="random-book-section">
+            <h2>Satunnainen kirja</h2>
+
+            {% if random_book %}
+                <div class="book-list-card">
+                    <h3>
+                        <a href="/book/{{ random_book.id }}">
+                            {{ random_book.title }}
+                        </a>
+                    </h3>
+
+                    <p>
+                        <span class="detail-label">Tekijä</span>
+                        {{ random_book.author }}
+                    </p>
+
+                    <p>
+                        <span class="detail-label">Vuosi</span>
+                        {{ random_book.year }}
+                    </p>
+
+                    <p>
+                        <span class="detail-label">Genre</span>
+                        {% for genre in random_book.genres %}
+                            {{ genre.name }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+            {% else %}
+                <p>Kirjoja ei ole vielä lisätty.</p>
+            {% endif %}
+        </section>
+
+        <section class="latest-reviews-section">
+            <h2>Viimeisimmät arvostelut</h2>
+
+            {% if latest_reviews %}
+                {% for review in latest_reviews %}
+                    <div class="review-card">
+                        <div class="review-header">
+                            <h3>
+                                <a href="/book/{{ review.book_id }}">
+                                    {{ review.book_title }}
+                                </a>
+                            </h3>
+
+                            <span class="review-rating">
+                                {{ review.grade }}/5
+                            </span>
+                        </div>
+
+                        <p><strong>{{ review.title }}</strong></p>
+
+                        <p class="review-author">
+                            Kirjoittaja:
+                            <a href="/user/{{ review.user_id }}">
+                                {{ review.username }}
+                            </a>
+                        </p>
+
+                        <p class="review-date">
+                            Päivämäärä: {{ review.created_at }}
+                        </p>
+
+                        {% if review.recommendation == 1 %}
+                            <p class="review-recommendation not-recommended">
+                                Ei suosittele
+                            </p>
+                        {% elif review.recommendation == 2 %}
+                            <p class="review-recommendation neutral">
+                                Neutraali
+                            </p>
+                        {% elif review.recommendation == 3 %}
+                            <p class="review-recommendation recommended">
+                                Suosittelee
+                            </p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Ei vielä arvosteluja.</p>
+            {% endif %}
+        </section>
+
+    </div>
+
 {% else %}
     {% if error %}
         <p class="error">{{ error }}</p>
@@ -29,93 +118,5 @@
         <input type="submit" value="Kirjaudu">
     </form>
 {% endif %}
-
-
-<div class="home-sections">
-
-    <section class="random-book-section">
-        <h2>Satunnainen kirja</h2>
-
-        {% if random_book %}
-            <div class="book-list-card">
-                <h3>
-                    <a href="/book/{{ random_book.id }}">
-                        {{ random_book.title }}
-                    </a>
-                </h3>
-
-                <p>
-                 <span class="detail-label">Tekijä</span>
-                  {{ random_book.author }}
-                </p>
-
-                <p>
-                  <span class="detail-label">Vuosi</span>
-                   {{ random_book.year }}
-                </p>
-
-                <p>
-                  <span class="detail-label">Genre</span>
-                  {% for genre in random_book.genres %}
-                    {{ genre.name }}{% if not loop.last %}, {% endif %}
-                  {% endfor %}
-                </p>
-            </div>
-        {% else %}
-            <p>Kirjoja ei ole vielä lisätty.</p>
-        {% endif %}
-    </section>
-
-    <section class="latest-reviews-section">
-        <h2>Viimeisimmät arvostelut</h2>
-
-        {% if latest_reviews %}
-            {% for review in latest_reviews %}
-                <div class="review-card">
-                    <div class="review-header">
-                        <h3>
-                            <a href="/book/{{ review.book_id }}">
-                                {{ review.book_title }}
-                            </a>
-                        </h3>
-                        <span class="review-rating">
-                            {{ review.grade }}/5
-                        </span>
-                    </div>
-
-                    <p><strong>{{ review.title }}</strong></p>
-
-                    <p class="review-author">
-                        Kirjoittaja:
-                        <a href="/user/{{ review.user_id }}">
-                            {{ review.username }}
-                        </a>
-                    </p>
-
-                    <p class="review-date">
-                        Päivämäärä: {{ review.created_at }}
-                    </p>
-
-                    {% if review.recommendation == 1 %}
-                        <p class="review-recommendation not-recommended">
-                            Ei suosittele
-                        </p>
-                    {% elif review.recommendation == 2 %}
-                        <p class="review-recommendation neutral">
-                            Neutraali
-                        </p>
-                    {% elif review.recommendation == 3 %}
-                        <p class="review-recommendation recommended">
-                            Suosittelee
-                        </p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>Ei vielä arvosteluja.</p>
-        {% endif %}
-    </section>
-
-</div>
 
 {% endblock %}
