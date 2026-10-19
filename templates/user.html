@@ -12,36 +12,76 @@
 
 {% if user %}
 
-<h1>{{ user.username }}</h1>
+<div class="user-name-box">
+    <h1>{{ user.username }}</h1>
+</div>
 
 <h2>Tiedot</h2>
 
-<p>Jäsen alkaen: {{ user.joined_at }}</p>
-<p>Lisätyt kirjat: {{ books_added }}</p>
-<p>Kirjoitetut arvostelut: {{ reviews_written }}</p>
+<div class="user-info-box">
+    <div class="user-details">
+        <div class="user-detail">
+            <span class="detail-label">Jäsen alkaen</span>
+            <span>{{ user.joined_at }}</span>
+        </div>
 
-{% if average_grade is not none %}
-    <p>Arvostelujen keskiarvo: {{ "%.1f"|format(average_grade) }}/5</p>
-{% else %}
-    <p>Arvostelujen keskiarvo: Ei arvosteluja</p>
-{% endif %}
+        <div class="user-detail">
+            <span class="detail-label">Lisätyt kirjat</span>
+            <span>{{ books_added }}</span>
+        </div>
+
+        <div class="user-detail">
+            <span class="detail-label">Kirjoitetut arvostelut</span>
+            <span>{{ reviews_written }}</span>
+        </div>
+
+        <div class="user-detail">
+            <span class="detail-label">Arvostelujen keskiarvo</span>
+            <span>
+                {% if average_grade is not none %}
+                    {{ "%.1f"|format(average_grade) }}/5
+                {% else %}
+                    Ei arvosteluja
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
 
 <h2>Arvostelut</h2>
 
 {% if reviews %}
     {% for review in reviews %}
 
-        <h3>
-            <a href="/book/{{ review.book_id }}">
-                {{ review.book_title }}
-            </a>
-        </h3>
+        <div class="review-card">
+            <div class="review-header">
+                <h3>
+                    <a href="/book/{{ review.book_id }}">
+                        {{ review.book_title }}
+                    </a>
+                </h3>
+                <span class="review-rating">{{ review.grade }}/5</span>
+            </div>
 
-        <p>{{ review.title }}</p>
-        <p>Arvosana: {{ review.grade }}/5</p>
-        <p>{{ review.review_text }}</p>
+            <p><strong>{{ review.title }}</strong></p>
+            <p class="review-date">Päivämäärä: {{ review.created_at }}</p>
+            <p>{{ review.review_text }}</p>
 
-        <hr>
+            {% if review.recommendation == 1 %}
+                <p class="review-recommendation not-recommended">
+                    Suositus: Ei suosittele
+                </p>
+            {% elif review.recommendation == 2 %}
+                <p class="review-recommendation neutral">
+                    Suositus: Neutraali
+                </p>
+            {% elif review.recommendation == 3 %}
+                <p class="review-recommendation recommended">
+                    Suositus: Suosittelee
+                </p>
+            {% endif %}
+
+        </div>
 
     {% endfor %}
 {% else %}

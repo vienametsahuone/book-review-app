@@ -2,32 +2,49 @@
 
 {% block title %}Kirjat{% endblock %}
 
+
 {% block content %}
 
 <h1>Kaikki kirjat</h1>
 
 <form action="/books" method="get">
-  <input type="text" name="search" placeholder="Hae kirjoja">
-  <input type="submit" value="Hae">
+    <input type="text" name="search" placeholder="Hae kirjoja">
+    <input type="submit" value="Hae">
 </form>
 
-{% for book in books %}
-  <h2><a href="/book/{{ book.id }}">{{ book.title }}</a></h2>
-  <p>Genre:
-  {% for genre in book.genres %}
-    {{ genre.name }}{% if not loop.last %}, {% endif %}
-  {% endfor %}
-  </p>
-  <p>Tekijä: {{ book.author }}</p>
-  {% if book.review_count > 0 %}
-    <p>Keskiarvo: {{ "%.1f"|format(book.average_grade) }}/5
-       ({{ book.review_count }} arvostelua)</p>
-  {% else %}
-    <p>Ei vielä arvosteluja</p>
-  {% endif %}
-  <p>Vuosi: {{ book.year }}</p>
+<div class="book-list">
+    {% for book in books %}
+        <div class="book-list-card">
+            <h2>
+                <a href="/book/{{ book.id }}">{{ book.title }}</a>
+            </h2>
 
-  <hr>
-{% endfor %}
+            <p class="book-list-author">Tekijä: {{ book.author }}</p>
+
+            <p>
+                <span class="detail-label">Genre</span>
+                {% for genre in book.genres %}
+                    {{ genre.name }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+
+            <p>
+                <span class="detail-label">Vuosi</span>
+                {{ book.year }}
+            </p>
+
+            {% if book.review_count > 0 %}
+                <p class="book-list-average">
+                    Keskiarvo: {{ "%.1f"|format(book.average_grade) }}/5
+                    ({{ book.review_count }} arvostelua)
+                </p>
+            {% else %}
+                <p class="book-list-average no-reviews">
+                    Ei vielä arvosteluja
+                </p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
 
 {% endblock %}

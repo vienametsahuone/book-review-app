@@ -6,37 +6,69 @@
 
 {% if book %}
 
-<h1>{{ book.title }}</h1>
+    <div class="book-card">
+        <h1>{{ book.title }}</h1>
+        <p class="book-added-by">
+          Lisännyt:
+          <a href="/user/{{ book.added_by }}">{{ book.username }}</a>
+        </p>
 
-{% if book.review_count > 0 %}
-    <p>Keskiarvo: {{ "%.1f"|format(book.average_grade) }}/5
-       ({{ book.review_count }} arvostelua)</p>
-{% else %}
-    <p>Ei vielä arvosteluja</p>
-{% endif %}
+        {% if book.review_count > 0 %}
+            <p class="book-average">
+                Keskiarvo: {{ "%.1f"|format(book.average_grade) }}/5
+                ({{ book.review_count }} arvostelua)
+            </p>
+        {% else %}
+            <p class="book-average">Ei vielä arvosteluja</p>
+        {% endif %}
 
-<p>Tekijä: {{ book.author }}</p>
-<p>Vuosi: {{ book.year }}</p>
-<p>Genre:
-    {% for genre in book.genres %}
-        {{ genre.name }}{% if not loop.last %}, {% endif %}
-    {% endfor %}
-</p>
-<p>Sivumäärä: {{ book.page_count }}</p>
-<p>Lisännyt: {{ book.username }}</p>
+        <div class="book-info-box">
+            <div class="book-details">
+                <div class="book-detail">
+                    <span class="detail-label">Tekijä</span>
+                    <span>{{ book.author }}</span>
+                </div>
 
-<h2>Kuvaus</h2>
-<p>{{ book.description }}</p>
+                <div class="book-detail">
+                    <span class="detail-label">Julkaisuvuosi</span>
+                    <span>{{ book.year }}</span>
+                </div>
 
-{% if session.user_id == book.added_by %}
-    <a href="/edit_book/{{ book.id }}">Muokkaa</a>
+                <div class="book-detail">
+                    <span class="detail-label">Genre</span>
+                    <span>
+                        {% for genre in book.genres %}
+                            {{ genre.name }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
 
-    {% if not reviews %}
-        <form action="/delete_book/{{ book.id }}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-            <input type="submit" value="Poista kirja">
-        </form>
-    {% endif %}
+                <div class="book-detail">
+                    <span class="detail-label">Sivumäärä</span>
+                    <span>{{ book.page_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="book-description-box">
+            <h2>Kuvaus</h2>
+            <p>{{ book.description }}</p>
+        </div>
+
+        {% if session.user_id == book.added_by %}
+            <a href="/edit_book/{{ book.id }}">Muokkaa</a>
+
+            {% if not reviews %}
+                <form action="/delete_book/{{ book.id }}" method="post">
+                    <input type="hidden" name="csrf_token"
+                           value="{{ session.csrf_token }}">
+                    <input type="submit" value="Poista kirja">
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+
+
 {% endif %}
 
 <h2>Arvostelut</h2>
@@ -44,33 +76,40 @@
 {% if reviews %}
     {% for review in reviews %}
 
-        <h3>{{ review.title }}</h3>
+        <div class="review-card">
+          <div class="review-header">
+            <h3>{{ review.title }}</h3>
+            <span class="review-rating">{{ review.grade }}/5</span>
+          </div>
 
-        <p>Arvosana: {{ review.grade }}/5</p>
-        <p>Kirjoittaja: {{ review.username }}</p>
-        <p>{{ review.review_text }}</p>
+          <p class="review-author">
+            Kirjoittaja:
+            <a href="/user/{{ review.user_id }}">{{ review.username }}</a>
+          </p>
+          <p class="review-date">Päivämäärä: {{ review.created_at }}</p>
+          <p>{{ review.review_text }}</p>
 
-        {% if review.recommendation == 1 %}
-            <p>Suositus: Ei suosittele</p>
-        {% elif review.recommendation == 2 %}
-            <p>Suositus: Neutraali</p>
-        {% elif review.recommendation == 3 %}
-            <p>Suositus: Suosittelee</p>
-        {% endif %}
+            {% if review.recommendation == 1 %}
+                <p class="review-recommendation not-recommended">Suositus: Ei suosittele</p>
+            {% elif review.recommendation == 2 %}
+                <p class="review-recommendation neutral">Suositus: Neutraali</p>
+            {% elif review.recommendation == 3 %}
+                <p class="review-recommendation recommended">Suositus: Suosittelee</p>
+            {% endif %}
 
-        {% if session.user_id == review.user_id %}
-            <form action="/delete_review/{{ review.id }}" method="post">
-                <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-                <input type="submit" value="Poista arvostelu">
-            </form>
-        {% endif %}
-
-        <hr>
+            {% if session.user_id == review.user_id %}
+                <form action="/delete_review/{{ review.id }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <input type="submit" value="Poista arvostelu">
+                </form>
+            {% endif %}
+        </div>
 
     {% endfor %}
 {% else %}
     <p>Kirjasta ei ole vielä arvosteluja.</p>
 {% endif %}
+
 
 {% if session.user_id %}
 
@@ -130,7 +169,6 @@
 
 </form>
 
-{% endif %}
 
 {% else %}
 
