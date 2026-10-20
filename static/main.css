@@ -1,26 +1,21 @@
-
 :root {
-    --extra-white: #F7F8F4;
-    --dew-drop: #C9D8D8;
-    --meander-blue: #BEDBD8;
-    --rain: #A8BDBB;
-    --aquaverde: #A5C8C5;
-    --drizzle: #8CAEAB;
-    --lagoon: #518682;
-    --really-teal: #016367;
-    --oceanside: #015A6B;
-    --light-sky-blue: #CDE9F2;
-    --muted-medium-blue: #8BC0D6;
+    /* Main colors */
+    --page-background: #8CAEAB;
+    --content-background: #FDFDFC;
+    --card-background: #E7EFE9;
+    --header-background: #355B60;
+    --accent-color: #1C393D;
+    --rose-accent: #DCC1C5;
 
-    --text-color: #173D43;
+    /* Text */
+    --text-color: #1C393D;
     --muted-text: #49666A;
-    --border-color: #A8C8C9;
-    --card-background: #E8F5FA;
-    --soft-background: #f6ffff;
 
+    /* Rating colors */
     --rating-background: #F5E8BB;
     --rating-text: #654D18;
 
+    /* Recommendation colors */
     --negative-background: #F6DEDC;
     --negative-text: #8A302D;
     --neutral-background: #F5E8BB;
@@ -29,17 +24,42 @@
     --positive-text: #285B40;
 }
 
+/* Base styles */
+
 body {
     margin: auto;
     max-width: 50em;
     font-family: sans-serif;
-    background-color: var(--drizzle);
+    background-color: var(--page-background);
     color: var(--text-color);
 }
 
+h1 {
+    margin: 0;
+}
+
+h2 {
+    margin: 1.5em 0 0.5em;
+}
+
+a {
+    color: var(--accent-color);
+}
+
+a:hover {
+    color: var(--header-background);
+}
+
+.error {
+    color: var(--negative-text);
+    font-weight: bold;
+}
+
+/* Header and navigation */
+
 .header {
-    background-color: var(--oceanside);
-    color: var(--extra-white);
+    background-color: var(--header-background);
+    color: var(--content-background);
     text-align: center;
     padding: 1.5em 1em;
     margin: 0.5em 0;
@@ -47,22 +67,23 @@ body {
 }
 
 .header h1 {
-    font-size: 2em;
+    font-size: 3em;
     letter-spacing: normal;
+    font-family: Georgia, serif;
 }
 
 .header h1::after {
     content: "";
     display: block;
-    width: 60px;
+    width: 64px;
     height: 3px;
-    background-color: var(--muted-medium-blue);
+    background-color: var(--rose-accent);
     margin: 0.5em auto 0;
     border-radius: 2px;
 }
 
 .nav {
-    background-color: var(--really-teal);
+    background-color: var(--accent-color);
     padding: 0.5em;
     margin: 0.1em 0;
     border-radius: 8px;
@@ -78,16 +99,16 @@ body {
 }
 
 .nav a {
-    color: var(--extra-white);
+    color: var(--content-background);
 }
 
 .nav a:hover {
-    color: var(--light-sky-blue);
+    color: var(--rose-accent);
 }
 
 .nav button {
-    background-color: var(--lagoon);
-    color: var(--extra-white);
+    background-color: var(--header-background);
+    color: var(--content-background);
     border: none;
     padding: 0.4em 0.7em;
     border-radius: 5px;
@@ -95,42 +116,37 @@ body {
 }
 
 .content {
-    background-color: var(--extra-white);
+    background-color: var(--content-background);
     padding: 1em;
     margin: 0.5em 0;
     border-radius: 10px;
 }
 
-h1 {
-    margin: 0;
+/* Shared card styles */
+
+.review-card,
+.book-card,
+.book-list-card,
+.user-name-box,
+.user-info-box,
+.users-table-box {
+    background-color: var(--card-background);
+    border: 1px solid var(--card-background);
+    border-radius: 10px;
 }
 
-h2 {
-    margin: 1.5em 0 0.5em;
+.review-card,
+.book-card,
+.book-list-card,
+.user-name-box {
+    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
-a {
-    color: var(--really-teal);
-}
-
-a:hover {
-    color: var(--lagoon);
-}
-
-.error {
-    color: var(--negative-text);
-    font-weight: bold;
-}
-
-/* Review cards */
+/* Reviews */
 
 .review-card {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
     padding: 1.25em;
     margin-bottom: 1.25em;
-    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .review-card h3 {
@@ -145,13 +161,19 @@ a:hover {
     gap: 1em;
 }
 
-.review-rating {
-    font-weight: bold;
-    white-space: nowrap;
+.review-rating,
+.book-average,
+.book-list-average {
+    display: inline-block;
     background-color: var(--rating-background);
     color: var(--rating-text);
-    padding: 0.3em 0.6em;
     border-radius: 5px;
+    font-weight: bold;
+}
+
+.review-rating {
+    white-space: nowrap;
+    padding: 0.3em 0.6em;
 }
 
 .review-author,
@@ -190,13 +212,11 @@ a:hover {
     color: var(--positive-text);
 }
 
+/* Book details */
+
 .book-card {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
     padding: 1.5em;
     margin: 1.5em 0;
-    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .book-card h1 {
@@ -208,23 +228,67 @@ a:hover {
 }
 
 .book-average {
-    display: inline-block;
-    background-color: var(--rating-background);
-    color: var(--rating-text);
     padding: 0.5em 0.8em;
-    border-radius: 5px;
-    font-weight: bold;
     margin-top: 0;
     margin-bottom: 0.3em;
 }
 
-.book-info-box,
-.book-description-box {
-    background-color: var(--extra-white);
-    border: 1px solid var(--border-color);
+.book-info-box {
+    position: relative;
+    background-color: var(--content-background);
+    border: 1px solid var(--card-background);
     border-radius: 10px;
-    padding: 1.25em;
+    padding: 1.5em;
     margin: 1.25em 0;
+}
+
+/* Minimal corner brackets */
+
+.book-info-box::before,
+.book-info-box::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+.book-info-box::before {
+    top: 8px;
+    left: 8px;
+    border-top: 2px solid var(--rose-accent);
+    border-left: 2px solid var(--rose-accent);
+}
+
+.book-info-box::after {
+    top: 8px;
+    right: 8px;
+    border-top: 2px solid var(--rose-accent);
+    border-right: 2px solid var(--rose-accent);
+}
+
+/* Bottom corner brackets using the box's inner content wrapper */
+
+.book-info-box .book-details::before,
+.book-info-box .book-details::after {
+    content: "";
+    position: absolute;
+    bottom: 8px;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+
+.book-info-box .book-details::before {
+    left: 8px;
+    border-bottom: 2px solid var(--rose-accent);
+    border-left: 2px solid var(--rose-accent);
+}
+
+.book-info-box .book-details::after {
+    right: 8px;
+    border-bottom: 2px solid var(--rose-accent);
+    border-right: 2px solid var(--rose-accent);
 }
 
 .book-details {
@@ -234,7 +298,8 @@ a:hover {
     margin: 0;
 }
 
-.book-detail {
+.book-detail,
+.user-detail {
     display: flex;
     flex-direction: column;
     gap: 0.3em;
@@ -267,56 +332,15 @@ a:hover {
     margin: 0.3em 0 0.5em;
 }
 
-.user-name-box {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 1em;
-    margin: 1.5em 0;
-    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
-    text-align: center;
-}
-
-.user-name-box h1 {
-    margin: 0;
-}
-
-.user-card h2 {
-    margin: 1em 0;
-}
-
-.user-info-box {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 1.25em;
-}
-
-.user-details {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1em;
-}
-
-.user-detail {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3em;
-    font-weight: bold;
-    overflow-wrap: anywhere;
-}
+/* Book list */
 
 .book-list {
     margin-top: 1.5em;
 }
 
 .book-list-card {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
     padding: 1.25em;
     margin-bottom: 1em;
-    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .book-list-card h2 {
@@ -324,12 +348,12 @@ a:hover {
 }
 
 .book-list-card h2 a {
-    color: var(--really-teal);
+    color: var(--accent-color);
     text-decoration: none;
 }
 
 .book-list-card h2 a:hover {
-    color: var(--lagoon);
+    color: var(--header-background);
     text-decoration: underline;
 }
 
@@ -342,25 +366,42 @@ a:hover {
 }
 
 .book-list-average {
-    display: inline-block;
-    background-color: var(--rating-background);
-    color: var(--rating-text);
     padding: 0.4em 0.7em;
-    border-radius: 5px;
-    font-weight: bold;
 }
 
 .no-reviews {
-    background-color: var(--light-sky-blue);
+    background-color: var(--card-background);
+}
+
+/* User pages */
+
+.user-name-box {
+    padding: 1em;
+    margin: 1.5em 0;
+    text-align: center;
+}
+
+.user-name-box h1 {
+    margin: 0;
+}
+
+.user-card h2 {
+    margin: 1em 0;
+}
+
+.user-info-box {
+    padding: 1.25em;
+}
+
+.user-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1em;
 }
 
 .users-table-box {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
     overflow: hidden;
     margin-top: 1.5em;
-    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
 }
 
 .users-table {
@@ -369,15 +410,15 @@ a:hover {
 }
 
 .users-table th {
-    background-color: var(--lagoon);
-    color: var(--extra-white);
+    background-color: var(--header-background);
+    color: var(--content-background);
     text-align: left;
     padding: 1em;
 }
 
 .users-table td {
     padding: 1em;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--card-background);
 }
 
 .users-table td:nth-child(2),
@@ -388,15 +429,15 @@ a:hover {
 }
 
 .users-table tr:nth-child(odd) {
-    background-color: #E8F5FA;
+    background-color: var(--card-background);
 }
 
 .users-table tr:nth-child(even) {
-    background-color: #E8F3EC;
+    background-color: var(--content-background);
 }
 
 .users-table a {
-    color: var(--really-teal);
+    color: var(--accent-color);
     font-weight: bold;
     text-decoration: none;
 }
@@ -409,11 +450,13 @@ a:hover {
     text-align: center;
     font-size: 0.85em;
     color: var(--muted-text);
-    margin-bottom: 1.5em;
-    margin-top: 0;
-    padding-bottom: 1em;
-    padding-top: 1em;
-    border-bottom: 1px solid var(--border-color);
+    margin: 0 0 1.5em;
+    padding: 1em 0;
+    border-bottom: 1px solid var(--card-background);
+}
+
+.content:has(.login-status) {
+    padding-top: 0;
 }
 
 /* Front page */
@@ -460,13 +503,11 @@ a:hover {
     font-size: 0.8em;
 }
 
-.content:has(.login-status) {
-    padding-top: 0;
-}
-
 .random-book-section .book-list-card h3 {
     margin-top: 0;
 }
+
+/* Responsive layout */
 
 @media (max-width: 600px) {
     .home-sections {
