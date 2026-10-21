@@ -2,3 +2,5 @@ __pycache__
 myenv
 *.db
 requirements.txt
+/static/profile_pictures/
+/static/book_covers/

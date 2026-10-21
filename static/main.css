@@ -4,6 +4,7 @@
     --content-background: #FDFDFC;
     --card-background: #E7EFE9;
     --header-background: #355B60;
+    --profile-background: #F3E8E9;
     --accent-color: #1C393D;
     --rose-accent: #DCC1C5;
 
@@ -122,24 +123,36 @@ a:hover {
     border-radius: 10px;
 }
 
+.content > h1,
+.content > h2 {
+    margin-left: 1em;
+}
+
 /* Shared card styles */
 
 .review-card,
 .book-card,
 .book-list-card,
-.user-name-box,
-.user-info-box,
+.user-card,
 .users-table-box {
     background-color: var(--card-background);
     border: 1px solid var(--card-background);
     border-radius: 10px;
 }
 
+.user-card {
+    background-color: var(--profile-background);
+    border-color: var(--profile-background);
+}
+
 .review-card,
 .book-card,
 .book-list-card,
-.user-name-box {
-    box-shadow: 0 2px 5px rgba(23, 61, 67, 0.08);
+.user-card {
+    margin-left: 1em;
+    margin-right: 1em;
+    width: auto;
+    box-sizing: border-box;
 }
 
 /* Reviews */
@@ -216,7 +229,7 @@ a:hover {
 
 .book-card {
     padding: 1.5em;
-    margin: 1.5em 0;
+    margin: 1.5em 1em;
 }
 
 .book-card h1 {
@@ -375,28 +388,65 @@ a:hover {
 
 /* User pages */
 
-.user-name-box {
-    padding: 1em;
-    margin: 1.5em 0;
+.user-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2em;
+    padding: 1.5em;
+    margin: 1.5em 1em;
+}
+
+.user-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    min-width: 0;
 }
 
-.user-name-box h1 {
-    margin: 0;
-}
-
-.user-card h2 {
+.user-profile h2 {
     margin: 1em 0;
+    overflow-wrap: anywhere;
 }
 
-.user-info-box {
-    padding: 1.25em;
+.user-profile form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    width: 220px;
+    max-width: 100%;
+}
+
+.user-profile form + form {
+    margin-top: 0.5em;
+}
+
+.user-profile input[type="file"] {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.85em;
+}
+
+.user-profile button {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .user-details {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1.5em;
+    min-width: 0;
+}
+
+.user-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    overflow-wrap: anywhere;
 }
 
 .users-table-box {
@@ -444,19 +494,6 @@ a:hover {
 
 .users-table a:hover {
     text-decoration: underline;
-}
-
-.login-status {
-    text-align: center;
-    font-size: 0.85em;
-    color: var(--muted-text);
-    margin: 0 0 1.5em;
-    padding: 1em 0;
-    border-bottom: 1px solid var(--card-background);
-}
-
-.content:has(.login-status) {
-    padding-top: 0;
 }
 
 /* Front page */
@@ -518,4 +555,23 @@ a:hover {
         flex-wrap: wrap;
         gap: 1em;
     }
+}
+
+.profile-picture {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    border-radius: 50%;
+    background-color: var(--card-background);
+}
+
+.profile-picture-placeholder {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--rose-accent);
 }

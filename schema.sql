@@ -2,7 +2,8 @@ CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE,
     password_hash TEXT,
-    joined_at TEXT DEFAULT CURRENT_TIMESTAMP
+    joined_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    profile_picture TEXT
 );
 
 CREATE TABLE books (
@@ -13,6 +14,7 @@ CREATE TABLE books (
     description TEXT,
     page_count INTEGER,
     added_by INTEGER,
+    image_filename TEXT,
     FOREIGN KEY (added_by) REFERENCES users(id)
 );
 

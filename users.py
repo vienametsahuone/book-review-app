@@ -16,6 +16,11 @@ def create_user(username, password_hash):
         [username, password_hash]
     )
 
+def update_profile_picture(user_id, filename):
+    db.execute(
+        "UPDATE users SET profile_picture = ? WHERE id = ?",
+        [filename, user_id]
+    )
 
 def get_users():
     return db.query(
@@ -34,7 +39,7 @@ def get_users():
 def get_user(id):
     result = db.query(
         """
-        SELECT id, username, joined_at
+        SELECT id, username, joined_at, profile_picture
         FROM users
         WHERE id = ?
         """,

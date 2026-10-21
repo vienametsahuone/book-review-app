@@ -7,10 +7,21 @@ import db
 import books as book_data
 import reviews as review_data
 import users as user_data
+import os
+import uuid
+from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
+
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
+
+app.config["UPLOAD_FOLDER"] = os.path.join(
+    app.static_folder, "profile_pictures"
+)
+
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 
 @app.before_request
@@ -459,6 +470,66 @@ def delete_review(id):
 def users():
     user_list = user_data.get_users()
     return render_template("users.html", users=user_list)
+
+
+@app.route("/user/profile-picture", methods=["POST"])
+def upload_profile_picture():
+    check_csrf()
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    if "profile_picture" not in request.files:
+        abort(400)
+
+    file = request.files["profile_picture"]
+
+    if not file.filename:
+        abort(400)
+
+    filename = secure_filename(file.filename)
+    extension = os.path.splitext(filename)[1].lower()
+
+    if extension not in [".jpg", ".jpeg", ".png", ".webp"]:
+        abort(400)
+
+    unique_filename = str(uuid.uuid4()) + extension
+
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+    file.save(
+        os.path.join(app.config["UPLOAD_FOLDER"], unique_filename)
+    )
+
+    user_data.update_profile_picture(
+        session["user_id"], unique_filename
+    )
+
+    return redirect("/user/" + str(session["user_id"]))
+
+
+@app.route("/user/profile-picture/delete", methods=["POST"])
+def delete_profile_picture():
+    check_csrf()
+
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+    user_info = user_data.get_user(user_id)
+
+    if user_info and user_info["profile_picture"]:
+        filename = os.path.basename(user_info["profile_picture"])
+        filepath = os.path.join(
+            app.config["UPLOAD_FOLDER"], filename
+        )
+
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+        user_data.update_profile_picture(user_id, None)
+
+    return redirect("/user/" + str(user_id))
 
 
 @app.route("/user/<int:id>")

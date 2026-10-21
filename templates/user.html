@@ -1,24 +1,39 @@
 {% extends "layout.html" %}
 
-{% block title %}
-    {% if user %}
-        {{ user.username }}
-    {% else %}
-        Käyttäjää ei löytynyt
-    {% endif %}
-{% endblock %}
+{% block title %}Käyttäjän tiedot{% endblock %}
 
 {% block content %}
 
+<h1>Käyttäjän tiedot</h1>
+
 {% if user %}
 
-<div class="user-name-box">
-    <h1>{{ user.username }}</h1>
-</div>
+<div class="user-card">
 
-<h2>Tiedot</h2>
+    <div class="user-profile">
+        {% if user.profile_picture %}
+            <img src="{{ url_for('static', filename='profile_pictures/' + user.profile_picture) }}" alt="Profile picture" class="profile-picture">
+        {% else %}
+            <div class="profile-picture-placeholder">Ei profiilikuvaa</div>
+        {% endif %}
 
-<div class="user-info-box">
+        <h2>{{ user.username }}</h2>
+
+        {% if session.get("user_id") == user.id %}
+            <form action="{{ url_for('upload_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+                <input type="file" name="profile_picture" accept=".jpg,.jpeg,.png,.webp" required>
+                <button type="submit">Lataa profiilikuva</button>
+            </form>
+            {% if user.profile_picture %}
+                <form action="{{ url_for('delete_profile_picture') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ session['csrf_token'] }}">
+                    <button type="submit">Poista profiilikuva</button>
+                </form>
+{% endif %}
+        {% endif %}
+    </div>
+
     <div class="user-details">
         <div class="user-detail">
             <span class="detail-label">Jäsen alkaen</span>
@@ -46,7 +61,9 @@
             </span>
         </div>
     </div>
+
 </div>
+
 
 <h2>Arvostelut</h2>
 
