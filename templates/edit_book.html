@@ -12,7 +12,7 @@
     {% endfor %}
 {% endif %}
 
-<form action="/edit_book/{{ book.id }}" method="post">
+<form action="/edit_book/{{ book.id }}" method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
   <p>
@@ -51,6 +51,19 @@
     <input type="number" name="page_count" min="0"
            value="{{ book.page_count }}">
   </p>
+
+  <p>
+    Nykyinen kansikuva:<br>
+    {% if book.image_filename %}
+        <img class="book-cover" src="{{ url_for('static', filename='book_covers/' ~ book.image_filename) }}" alt="Cover of {{ book.title }}">
+    {% else %}
+        <div class="book-cover-placeholder">Ei kansikuvaa vielä</div>
+    {% endif %}
+  </p>
+<p>
+    Vaihda kansikuva (valinnainen):<br>
+    <input type="file" name="cover" accept=".jpg,.jpeg,.png,.webp">
+</p>
 
   <p>
     Kuvaus:<br>

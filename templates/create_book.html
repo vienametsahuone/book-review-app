@@ -13,7 +13,7 @@
     {% endfor %}
 {% endif %}
 
-<form action="/create_book" method="post">
+<form action="/create_book" method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
 
   <p>
@@ -47,11 +47,17 @@
     {% endfor %}
   </p>
 
-    <p>
-        Sivumäärä:<br>
-        <input type="number" name="page_count" min="1" max="5000" required
-               value="{{ book.page_count if book else '' }}">
-    </p>
+  <p>
+    Sivumäärä:<br>
+      <input type="number" name="page_count" min="1" max="5000" required
+        value="{{ book.page_count if book else '' }}">
+  </p>
+  
+  <p>
+    Kansikuva (valinnainen):<br>
+    <input type="file" name="cover"
+           accept=".jpg,.jpeg,.png,.webp">
+  </p>
 
   <p>
     Kuvaus:<br>

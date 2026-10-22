@@ -23,6 +23,11 @@ app.config["UPLOAD_FOLDER"] = os.path.join(
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+app.config["BOOK_COVER_FOLDER"] = os.path.join(
+    app.static_folder, "book_covers"
+)
+
+os.makedirs(app.config["BOOK_COVER_FOLDER"], exist_ok=True)
 
 @app.before_request
 def ensure_csrf_token():
@@ -160,6 +165,15 @@ def create_book():
     selected_genres = request.form.getlist("genres")
     page_count = request.form["page_count"].strip()
 
+    cover = request.files.get("cover")
+    image_filename = None
+
+    if cover and cover.filename:
+        if cover.filename.rsplit(".", 1)[-1].lower() not in [
+            "jpg", "jpeg", "png", "webp"
+        ] or "." not in cover.filename:
+            errors.append("Kansikuvan täytyy olla tiedostomuodossa JPG, PNG, tai WEBP")
+
     errors = []
 
     if not title:
@@ -223,9 +237,14 @@ def create_book():
             selected_genres=selected_genres
         )
 
+    if cover and cover.filename:
+        extension = cover.filename.rsplit(".", 1)[-1].lower()
+        image_filename = f"{uuid.uuid4().hex}.{extension}"
+        cover.save(os.path.join(app.config["BOOK_COVER_FOLDER"], image_filename))
+
     book_id = book_data.create_book(
         title, author, year, description, page_count,
-        session["user_id"], selected_genres
+        session["user_id"], selected_genres, image_filename
     )
 
     return redirect("/book/" + str(book_id))
@@ -299,6 +318,7 @@ def update_book(id):
     description = request.form["description"].strip()
     page_count = request.form["page_count"].strip()
     selected_genres = request.form.getlist("genres")
+    cover = request.files.get("cover")
 
     errors = []
 
@@ -343,6 +363,10 @@ def update_book(id):
         if page_count > 5000:
             errors.append("Sivumäärä ei voi olla yli 5000")
 
+    if cover and cover.filename:
+        if "." not in cover.filename or cover.filename.rsplit(".", 1)[-1].lower() not in ["jpg", "jpeg", "png", "webp"]:
+            errors.append("Kansikuvan täytyy olla tiedostomuodossa JPG, PNG, tai WEBP")
+
     if len(description) > 1000:
         errors.append("Kuvaus saa olla enintään 1000 merkkiä")
 
@@ -361,9 +385,16 @@ def update_book(id):
             errors=errors
         )
 
+    image_filename = book_info["image_filename"]
+
+    if cover and cover.filename:
+        extension = cover.filename.rsplit(".", 1)[-1].lower()
+        image_filename = f"{uuid.uuid4().hex}.{extension}"
+        cover.save(os.path.join(app.config["BOOK_COVER_FOLDER"], image_filename))
+
     book_data.update_book(
         id, title, author, year, description, page_count,
-        selected_genres
+        selected_genres, image_filename
     )
 
     return redirect("/book/" + str(id))

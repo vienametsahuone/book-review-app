@@ -234,6 +234,7 @@ a:hover {
 
 .book-card h1 {
     margin-bottom: 0.5em;
+    text-align: center;
 }
 
 .book-card p {
@@ -241,18 +242,56 @@ a:hover {
 }
 
 .book-average {
+    display: block;
+    width: fit-content;
     padding: 0.5em 0.8em;
-    margin-top: 0;
-    margin-bottom: 0.3em;
+    margin: 0 auto 1.25em;
+    text-align: center;
 }
 
 .book-info-box {
     position: relative;
+    display: block;
     background-color: var(--content-background);
     border: 1px solid var(--card-background);
     border-radius: 10px;
     padding: 1.5em;
     margin: 1.25em 0;
+}
+
+.book-cover {
+    width: 180px;
+    height: 270px;
+    object-fit: contain;
+    border-radius: 0;
+    flex-shrink: 0;
+}
+
+.book-cover-placeholder {
+    width: 180px;
+    height: 270px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: var(--card-background);
+    color: var(--muted-text);
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.book-main-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+}
+
+.book-description-box {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--card-background);
 }
 
 /* Minimal corner brackets */
@@ -342,7 +381,38 @@ a:hover {
 .book-added-by {
     color: var(--muted-text);
     font-size: 0.9em;
-    margin: 0.3em 0 0.5em;
+    margin: 1.5em 0 0;
+    padding-top: 1em;
+    border-top: 1px solid var(--card-background);
+}
+
+.book-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.book-actions form {
+    margin: 0;
+}
+
+.book-actions .action-button {
+    display: inline-block;
+    box-sizing: border-box;
+    padding: 10px 18px;
+    border: 1px solid var(--accent-color);
+    border-radius: 4px;
+    background-color: var(--accent-color);
+    color: var(--content-background);
+    font: inherit;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.book-actions .action-button:hover {
+    opacity: 0.85;
 }
 
 /* Book list */
@@ -498,6 +568,15 @@ a:hover {
 
 /* Front page */
 
+.login-status {
+    text-align: center;
+    color: var(--muted-text);
+    font-size: 0.9em;
+    padding-bottom: 0.5em;
+    margin: 0 auto 1em;
+    border-bottom: 1px solid var(--card-background);
+}
+
 .home-sections {
     display: grid;
     grid-template-columns: 1fr 1.3fr;
@@ -506,7 +585,7 @@ a:hover {
 }
 
 .home-sections h2 {
-    margin-top: 0;
+    margin-top: 0.4em;
     text-align: center;
 }
 

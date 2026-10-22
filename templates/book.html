@@ -4,49 +4,29 @@
 
 {% block content %}
 
+
 {% if book %}
+<div class="book-card">
+    <h1 class="book-title">{{ book.title }}</h1>
 
-    <div class="book-card">
-        <h1>{{ book.title }}</h1>
-        <p class="book-added-by">
-          Lisännyt:
-          <a href="/user/{{ book.added_by }}">{{ book.username }}</a>
-        </p>
+    {% if book.review_count > 0 %}
+        <p class="book-average">Keskiarvo: {{ "%.1f"|format(book.average_grade) }}/5 ({{ book.review_count }} arvostelua)</p>
+    {% else %}
+        <p class="book-average">Ei vielä arvosteluja</p>
+    {% endif %}
 
-        {% if book.review_count > 0 %}
-            <p class="book-average">
-                Keskiarvo: {{ "%.1f"|format(book.average_grade) }}/5
-                ({{ book.review_count }} arvostelua)
-            </p>
-        {% else %}
-            <p class="book-average">Ei vielä arvosteluja</p>
-        {% endif %}
-
-        <div class="book-info-box">
+    <div class="book-info-box">
+        <div class="book-main-info">
+            {% if book.image_filename %}
+                <img class="book-cover" src="{{ url_for('static', filename='book_covers/' ~ book.image_filename) }}" alt="Cover of {{ book.title }}">
+            {% else %}
+                <div class="book-cover-placeholder">Ei kansikuvaa vielä</div>
+            {% endif %}
             <div class="book-details">
-                <div class="book-detail">
-                    <span class="detail-label">Tekijä</span>
-                    <span>{{ book.author }}</span>
-                </div>
-
-                <div class="book-detail">
-                    <span class="detail-label">Julkaisuvuosi</span>
-                    <span>{{ book.year }}</span>
-                </div>
-
-                <div class="book-detail">
-                    <span class="detail-label">Genre</span>
-                    <span>
-                        {% for genre in book.genres %}
-                            {{ genre.name }}{% if not loop.last %}, {% endif %}
-                        {% endfor %}
-                    </span>
-                </div>
-
-                <div class="book-detail">
-                    <span class="detail-label">Sivumäärä</span>
-                    <span>{{ book.page_count }}</span>
-                </div>
+                <div class="book-detail"><span class="detail-label">Tekijä</span><span>{{ book.author }}</span></div>
+                <div class="book-detail"><span class="detail-label">Julkaisuvuosi</span><span>{{ book.year }}</span></div>
+                <div class="book-detail"><span class="detail-label">Genre</span><span>{% for genre in book.genres %}{{ genre.name }}{% if not loop.last %}, {% endif %}{% endfor %}</span></div>
+                <div class="book-detail"><span class="detail-label">Sivumäärä</span><span>{{ book.page_count }}</span></div>
             </div>
         </div>
 
@@ -54,22 +34,24 @@
             <h2>Kuvaus</h2>
             <p>{{ book.description }}</p>
         </div>
-
-        {% if session.user_id == book.added_by %}
-            <a href="/edit_book/{{ book.id }}">Muokkaa</a>
-
-            {% if not reviews %}
-                <form action="/delete_book/{{ book.id }}" method="post">
-                    <input type="hidden" name="csrf_token"
-                           value="{{ session.csrf_token }}">
-                    <input type="submit" value="Poista kirja">
-                </form>
-            {% endif %}
-        {% endif %}
     </div>
 
+    {% if session.user_id == book.added_by %}
+        <div class="book-actions">
+            <a class="action-button" href="/edit_book/{{ book.id }}">Muokkaa</a>
+            {% if not reviews %}
+                <form action="/delete_book/{{ book.id }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <input class="action-button" type="submit" value="Poista kirja">
+                </form>
+            {% endif %}
+        </div>
+    {% endif %}
 
+    <p class="book-added-by">Lisännyt: <a href="/user/{{ book.added_by }}">{{ book.username }}</a></p>
+</div>
 {% endif %}
+
 
 <h2>Arvostelut</h2>
 

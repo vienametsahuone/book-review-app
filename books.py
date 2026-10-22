@@ -101,7 +101,7 @@ def get_book_rating(book_id):
 
 def get_book_for_edit(id):
     result = db.query("""
-        SELECT id, title, author, year, description, page_count, added_by
+        SELECT id, title, author, year, description, page_count, added_by, image_filename
         FROM books
         WHERE id = ?
     """, [id])
@@ -122,14 +122,14 @@ def get_selected_genres(id):
 
 
 def create_book(title, author, year, description, page_count,
-                user_id, selected_genres):
+                user_id, selected_genres, image_filename=None):
     db.execute(
         """
         INSERT INTO books
-        (title, author, year, description, page_count, added_by)
-        VALUES (?, ?, ?, ?, ?, ?)
+        (title, author, year, description, page_count, added_by, image_filename)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        [title, author, year, description, page_count, user_id]
+        [title, author, year, description, page_count, user_id, image_filename]
     )
 
     book_id = g.last_insert_id
@@ -144,15 +144,15 @@ def create_book(title, author, year, description, page_count,
 
 
 def update_book(id, title, author, year, description, page_count,
-                selected_genres):
+                selected_genres, image_filename):
     db.execute(
         """
         UPDATE books
         SET title = ?, author = ?, year = ?, description = ?,
-            page_count = ?
+            page_count = ?, image_filename = ?
         WHERE id = ?
         """,
-        [title, author, year, description, page_count, id]
+        [title, author, year, description, page_count, image_filename, id]
     )
 
     db.execute("DELETE FROM book_genres WHERE book_id = ?", [id])
